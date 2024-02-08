@@ -62,5 +62,10 @@ public class Chess {
 	 */
 	public static void start() {
 		String board[][] = PlayChess.makeBlankBoard();
+		ArrayList<ReturnPiece> pieces = new ArrayList<ReturnPiece>();
+		/*
+		 * Need to fill ArrayList pieces with new instances of pieces
+		 */
+		PlayChess.printBoard(pieces);
 	}
 }
