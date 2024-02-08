@@ -1,6 +1,9 @@
 package chess;
 
 public interface Piece {
+    enum PieceFile {a, b, c, d, e, f, g, h};
+    static enum PieceType {WP, WR, WN, WB, WQ, WK, 
+        BP, BR, BN, BB, BK, BQ};
 
     public boolean validMove();
     public ReturnPiece move();
@@ -9,8 +12,24 @@ public interface Piece {
 
 class King implements Piece{
 
-    enum PieceFile {a, b, c, d, e, f, g, h};
-    int pieceRank; //1-8
+    private int pieceRank; //1-8
+    private PieceFile pieceFile;
+    private PieceType pieceType;
+
+    public King(Chess.Player color){
+        pieceFile = PieceFile.e;
+        switch (color) {
+            case white:
+                this.pieceRank = 8;
+                this.pieceType = PieceType.WK;
+                break;
+            case black:
+                this.pieceRank = 1;  
+                this.pieceType = PieceType.BK;
+
+                break;
+        }
+    }
 
     public boolean validMove(){
         return true;
@@ -23,9 +42,24 @@ class King implements Piece{
 
 class Queen implements Piece{
 
-    enum PieceFile {a, b, c, d, e, f, g, h};
-    int pieceRank; //1-8
+    private int pieceRank; //1-8
+    private PieceFile pieceFile;
+    private PieceType pieceType;
 
+    public Queen(Chess.Player color){
+        pieceFile = PieceFile.d;
+        switch (color) {
+            case white:
+                this.pieceRank = 1;
+                this.pieceType = PieceType.WQ;
+                break;
+        
+            case black:
+                this.pieceRank = 8;
+                this.pieceType = PieceType.BQ;
+                break;
+        }
+    }
     public boolean validMove(){
         return true;
     }
@@ -37,8 +71,25 @@ class Queen implements Piece{
 
 class Rook implements Piece{
 
-    enum PieceFile {a, b, c, d, e, f, g, h};
-    int pieceRank; //1-8
+    private int pieceRank; //1-8
+    private PieceFile pieceFile;
+    private PieceType pieceType;
+
+    public Rook(Chess.Player color, int typeIteration){
+        switch (color) {
+            case white:
+                this.pieceType = PieceType.WR;
+                pieceRank = 1; 
+                break;
+            case black:
+                this.pieceType = PieceType.BR;
+                pieceRank = 8; 
+                break;
+        }
+
+        if(typeIteration == 0)pieceFile = PieceFile.a;
+        else pieceFile = PieceFile.h;
+    }
 
     public boolean validMove(){
         return true;
@@ -51,8 +102,25 @@ class Rook implements Piece{
 
 class Bishop implements Piece{
 
-    enum PieceFile {a, b, c, d, e, f, g, h};
     int pieceRank; //1-8
+    PieceFile pieceFile;
+    PieceType pieceType;
+
+    public Bishop(Chess.Player color, int typeIteration){
+   
+        switch (color) {
+            case white:
+                this.pieceType = PieceType.WB;
+                pieceRank = 1; 
+                break;
+            case black:
+                this.pieceType = PieceType.BB;
+                pieceRank = 8; 
+                break;
+        }
+        if(typeIteration == 0)pieceFile = PieceFile.c;
+        else pieceFile = PieceFile.f;
+    }
 
     public boolean validMove(){
         return true;
@@ -65,8 +133,24 @@ class Bishop implements Piece{
 
 class Knight implements Piece{
 
-    enum PieceFile {a, b, c, d, e, f, g, h};
+    PieceType pieceType;
     int pieceRank; //1-8
+    PieceFile pieceFile;
+
+    public Knight(Chess.Player color, int typeIteration){
+        switch (color) {
+            case white:
+                this.pieceType = PieceType.WN;
+                pieceRank = 1; 
+                break;
+            case black:
+                this.pieceType = PieceType.BN;
+                pieceRank = 8; 
+                break;
+        }
+        if(typeIteration == 0)pieceFile = PieceFile.b;
+        else pieceFile = PieceFile.g;
+    }
 
     public boolean validMove(){
         return true;
@@ -79,8 +163,48 @@ class Knight implements Piece{
 
 class Pawn implements Piece{
 
-    enum PieceFile {a, b, c, d, e, f, g, h};
+    PieceType pieceType;
     int pieceRank; //1-8
+    PieceFile pieceFile;
+
+    public Pawn(Chess.Player color, int typeIteration){
+        switch (color) {
+            case white:
+                this.pieceType = PieceType.WP;
+                pieceRank = 2; 
+                break;
+            case black:
+                this.pieceType = PieceType.BP;
+                pieceRank = 7; 
+                break;
+        }
+        switch (typeIteration) {
+            case 0:
+                this.pieceFile = PieceFile.a;
+                break;
+            case 1:
+                this.pieceFile = PieceFile.b;
+                break;
+            case 2:
+                this.pieceFile = PieceFile.c;
+                break;
+            case 3:
+                this.pieceFile = PieceFile.d;
+                break;
+            case 4:
+                this.pieceFile = PieceFile.e;
+                break;
+            case 5:
+                this.pieceFile = PieceFile.f;
+                break;  
+            case 6:
+                this.pieceFile = PieceFile.g;
+                break;
+            case 7:
+                this.pieceFile = PieceFile.h;
+                break;              
+        }
+    }
 
     public boolean validMove(){
         return true;
