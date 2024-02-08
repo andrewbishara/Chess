@@ -2,7 +2,7 @@ package chess;
 
 public interface Piece {
     enum PieceFile {a, b, c, d, e, f, g, h};
-    static enum PieceType {WP, WR, WN, WB, WQ, WK, 
+    enum PieceType {WP, WR, WN, WB, WQ, WK, 
         BP, BR, BN, BB, BK, BQ};
 
     public boolean validMove();
@@ -12,9 +12,9 @@ public interface Piece {
 
 class King implements Piece{
 
-    private int pieceRank; //1-8
-    private PieceFile pieceFile;
-    private PieceType pieceType;
+    int pieceRank; //1-8
+    PieceFile pieceFile;
+    PieceType pieceType;
 
     public King(Chess.Player color){
         pieceFile = PieceFile.e;
@@ -42,9 +42,9 @@ class King implements Piece{
 
 class Queen implements Piece{
 
-    private int pieceRank; //1-8
-    private PieceFile pieceFile;
-    private PieceType pieceType;
+    int pieceRank; //1-8
+    PieceFile pieceFile;
+    PieceType pieceType;
 
     public Queen(Chess.Player color){
         pieceFile = PieceFile.d;
@@ -71,9 +71,9 @@ class Queen implements Piece{
 
 class Rook implements Piece{
 
-    private int pieceRank; //1-8
-    private PieceFile pieceFile;
-    private PieceType pieceType;
+    int pieceRank; //1-8
+    PieceFile pieceFile;
+    PieceType pieceType;
 
     public Rook(Chess.Player color, int typeIteration){
         switch (color) {
