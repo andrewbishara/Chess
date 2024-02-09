@@ -13,11 +13,11 @@ class King extends ReturnPiece implements Piece{
         pieceFile = PieceFile.e;
         switch (color) {
             case white:
-                this.pieceRank = 8;
+                this.pieceRank = 1;
                 this.pieceType = PieceType.WK;
                 break;
             case black:
-                this.pieceRank = 1;  
+                this.pieceRank = 8;  
                 this.pieceType = PieceType.BK;
 
                 break;

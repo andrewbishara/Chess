@@ -62,10 +62,28 @@ public class Chess {
 	 */
 	public static void start() {
 		String board[][] = PlayChess.makeBlankBoard();
+
 		ArrayList<ReturnPiece> pieces = new ArrayList<ReturnPiece>();
-		/*
-		 * Need to fill ArrayList pieces with new instances of pieces
-		 */
+
+		//Fill board with starting positions for pieces 
+		for(Player player : Player.values()){
+			pieces.add(new King(player));
+			pieces.add(new Queen(player));
+
+			for(int i = 0; i < 2; i++){
+				pieces.add(new Rook(player, i));
+				pieces.add(new Bishop(player, i));
+				pieces.add(new Knight(player, i));
+			}
+
+			for(int i = 0; i < 8; i++){
+				pieces.add(new Pawn(player, i));
+			}
+		}
+
+		System.out.println("Calling printBoard:\n");
 		PlayChess.printBoard(pieces);
+		System.out.println("Calling printPiecesOnBoard:\n");
+		PlayChess.printPiecesOnBoard(pieces, board);
 	}
 }
