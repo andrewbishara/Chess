@@ -1,30 +1,23 @@
 package chess;
 
 public interface Piece {
-    enum PieceFile {a, b, c, d, e, f, g, h};
-    enum PieceType {WP, WR, WN, WB, WQ, WK, 
-        BP, BR, BN, BB, BK, BQ};
 
     public boolean validMove();
     public ReturnPiece move();
 
 }
 
-class King implements Piece{
-
-    int pieceRank; //1-8
-    PieceFile pieceFile;
-    PieceType pieceType;
+class King extends ReturnPiece implements Piece{
 
     public King(Chess.Player color){
         pieceFile = PieceFile.e;
         switch (color) {
             case white:
-                this.pieceRank = 8;
+                this.pieceRank = 1;
                 this.pieceType = PieceType.WK;
                 break;
             case black:
-                this.pieceRank = 1;  
+                this.pieceRank = 8;  
                 this.pieceType = PieceType.BK;
 
                 break;
@@ -40,11 +33,7 @@ class King implements Piece{
     }
 }
 
-class Queen implements Piece{
-
-    int pieceRank; //1-8
-    PieceFile pieceFile;
-    PieceType pieceType;
+class Queen extends ReturnPiece implements Piece{
 
     public Queen(Chess.Player color){
         pieceFile = PieceFile.d;
@@ -69,11 +58,7 @@ class Queen implements Piece{
     }
 }
 
-class Rook implements Piece{
-
-    int pieceRank; //1-8
-    PieceFile pieceFile;
-    PieceType pieceType;
+class Rook extends ReturnPiece implements Piece{
 
     public Rook(Chess.Player color, int typeIteration){
         switch (color) {
@@ -100,11 +85,7 @@ class Rook implements Piece{
     }
 }
 
-class Bishop implements Piece{
-
-    int pieceRank; //1-8
-    PieceFile pieceFile;
-    PieceType pieceType;
+class Bishop extends ReturnPiece implements Piece{
 
     public Bishop(Chess.Player color, int typeIteration){
    
@@ -131,11 +112,7 @@ class Bishop implements Piece{
     }
 }
 
-class Knight implements Piece{
-
-    PieceType pieceType;
-    int pieceRank; //1-8
-    PieceFile pieceFile;
+class Knight extends ReturnPiece implements Piece{
 
     public Knight(Chess.Player color, int typeIteration){
         switch (color) {
@@ -161,11 +138,7 @@ class Knight implements Piece{
     }
 }
 
-class Pawn implements Piece{
-
-    PieceType pieceType;
-    int pieceRank; //1-8
-    PieceFile pieceFile;
+class Pawn extends ReturnPiece implements Piece{
 
     public Pawn(Chess.Player color, int typeIteration){
         switch (color) {
