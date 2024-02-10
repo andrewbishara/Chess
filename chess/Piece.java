@@ -2,8 +2,8 @@ package chess;
 
 public interface Piece {
 
-    public boolean validMove();
-    public ReturnPiece move();
+    public boolean validMove(String move);
+    public ReturnPiece move(String move);
 
 }
 
@@ -24,11 +24,13 @@ class King extends ReturnPiece implements Piece{
         }
     }
 
-    public boolean validMove(){
+    public boolean validMove(String move){
         return true;
     }
 
-    public ReturnPiece move(){
+    //Takes in a position to move to, sets fields to ending position
+    public ReturnPiece move(String move){
+
         return new ReturnPiece();
     }
 }
@@ -49,11 +51,11 @@ class Queen extends ReturnPiece implements Piece{
                 break;
         }
     }
-    public boolean validMove(){
+    public boolean validMove(String move){
         return true;
     }
 
-    public ReturnPiece move(){
+    public ReturnPiece move(String move){
         return new ReturnPiece();
     }
 }
@@ -76,11 +78,11 @@ class Rook extends ReturnPiece implements Piece{
         else pieceFile = PieceFile.h;
     }
 
-    public boolean validMove(){
+    public boolean validMove(String move){
         return true;
     }
 
-    public ReturnPiece move(){
+    public ReturnPiece move(String move){
         return new ReturnPiece();
     }
 }
@@ -103,11 +105,11 @@ class Bishop extends ReturnPiece implements Piece{
         else pieceFile = PieceFile.f;
     }
 
-    public boolean validMove(){
+    public boolean validMove(String move){
         return true;
     }
 
-    public ReturnPiece move(){
+    public ReturnPiece move(String move){
         return new ReturnPiece();
     }
 }
@@ -129,11 +131,11 @@ class Knight extends ReturnPiece implements Piece{
         else pieceFile = PieceFile.g;
     }
 
-    public boolean validMove(){
+    public boolean validMove(String move){
         return true;
     }
 
-    public ReturnPiece move(){
+    public ReturnPiece move(String move){
         return new ReturnPiece();
     }
 }
@@ -179,11 +181,11 @@ class Pawn extends ReturnPiece implements Piece{
         }
     }
 
-    public boolean validMove(){
+    public boolean validMove(String move){
         return true;
     }
 
-    public ReturnPiece move(){
+    public ReturnPiece move(String move){
         return new ReturnPiece();
     }
 }
