@@ -1,13 +1,13 @@
 package chess;
 
-public interface Piece {
+public abstract class Piece extends ReturnPiece{
 
-    public boolean validMove(String move);
-    public ReturnPiece move(String move);
+    public abstract boolean validMove(String move);
+    public abstract ReturnPiece move(String move);
 
 }
 
-class King extends ReturnPiece implements Piece{
+class King extends Piece{
 
     public King(Chess.Player color){
         pieceFile = PieceFile.e;
@@ -35,7 +35,7 @@ class King extends ReturnPiece implements Piece{
     }
 }
 
-class Queen extends ReturnPiece implements Piece{
+class Queen extends Piece{
 
     public Queen(Chess.Player color){
         pieceFile = PieceFile.d;
@@ -60,7 +60,7 @@ class Queen extends ReturnPiece implements Piece{
     }
 }
 
-class Rook extends ReturnPiece implements Piece{
+class Rook extends Piece{
 
     public Rook(Chess.Player color, int typeIteration){
         switch (color) {
@@ -87,7 +87,7 @@ class Rook extends ReturnPiece implements Piece{
     }
 }
 
-class Bishop extends ReturnPiece implements Piece{
+class Bishop extends Piece{
 
     public Bishop(Chess.Player color, int typeIteration){
    
@@ -114,7 +114,7 @@ class Bishop extends ReturnPiece implements Piece{
     }
 }
 
-class Knight extends ReturnPiece implements Piece{
+class Knight extends Piece{
 
     public Knight(Chess.Player color, int typeIteration){
         switch (color) {
@@ -140,7 +140,7 @@ class Knight extends ReturnPiece implements Piece{
     }
 }
 
-class Pawn extends ReturnPiece implements Piece{
+class Pawn extends Piece{
 
     public Pawn(Chess.Player color, int typeIteration){
         switch (color) {
