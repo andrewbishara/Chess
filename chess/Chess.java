@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.ArrayList;
+import chess.ReturnPlay.Message;
 
 class ReturnPiece {
 	static enum PieceType {WP, WR, WN, WB, WQ, WK, 
@@ -37,6 +38,8 @@ class ReturnPlay {
 public class Chess {
 	
 	enum Player { white, black }
+	static Player player;
+ 	static ArrayList<ReturnPiece> pieces;
 	
 	/**
 	 * Plays the next move for whichever player has the turn.
@@ -48,12 +51,39 @@ public class Chess {
 	 *         the contents of the returned ReturnPlay instance.
 	 */
 	public static ReturnPlay play(String move) {
+	
+		ReturnPlay ret = new ReturnPlay();
 
-		/* FILL IN THIS METHOD */
+		//Checks for resign first
+		if(move.equals("resign")){
+			if(player == Player.black) ret.message = ReturnPlay.Message.RESIGN_BLACK_WINS;
+			else ret.message = ReturnPlay.Message.RESIGN_WHITE_WINS;
+		}
+
+		// Split move into starting position and ending position
+		// Set curPiece to the piece at played position and plays the move
+		String subMove[] = move.split(" ");
+		Piece curPiece = null;
+		for(ReturnPiece it : pieces){
+			if(""+it.pieceFile+it.pieceRank == subMove[0]){
+				pieces.remove(it);
+				curPiece = (Piece)it;
+			}
+		}
+		if(!curPiece.equals(null)) {
+			pieces.add(curPiece.move(subMove[1]));
+		} 
+
+		// If there is an additional message in the move (draw or promotion)
+		if(subMove.length == 3){
+			if(subMove[2].equals("draw?")){
+				ret.message = ReturnPlay.Message.DRAW;
+			}
+		}
 		
-		/* FOLLOWING LINE IS A PLACEHOLDER TO MAKE COMPILER HAPPY */
-		/* WHEN YOU FILL IN THIS METHOD, YOU NEED TO RETURN A ReturnPlay OBJECT */
-		return null;
+		if(player == Player.white) player = Player.white;
+		else player = Player.white;
+		return ret;
 	}
 	
 	
@@ -62,8 +92,7 @@ public class Chess {
 	 */
 	public static void start() {
 		String board[][] = PlayChess.makeBlankBoard();
-
-		ArrayList<ReturnPiece> pieces = new ArrayList<ReturnPiece>();
+		pieces = new ArrayList<ReturnPiece>();
 
 		//Fill board with starting positions for pieces 
 		for(Player player : Player.values()){
@@ -80,6 +109,9 @@ public class Chess {
 				pieces.add(new Pawn(player, i));
 			}
 		}
+
+		// 1st turn is always white
+		player = Player.white;
 
 		System.out.println("Calling printBoard:\n");
 		PlayChess.printBoard(pieces);
