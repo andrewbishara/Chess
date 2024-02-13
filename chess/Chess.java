@@ -1,6 +1,9 @@
 package chess;
 
 import java.util.ArrayList;
+import java.lang.NumberFormatException;
+
+import chess.ReturnPiece.PieceFile;
 import chess.ReturnPlay.Message;
 
 class ReturnPiece {
@@ -65,24 +68,62 @@ public class Chess {
 		String subMove[] = move.split(" ");
 		Piece curPiece = null;
 		for(ReturnPiece it : pieces){
-			if(""+it.pieceFile+it.pieceRank == subMove[0]){
-				pieces.remove(it);
+			if(subMove[0].equals(""+it.pieceFile+it.pieceRank)){
 				curPiece = (Piece)it;
 			}
 		}
-		if(!curPiece.equals(null)) {
-			pieces.add(curPiece.move(subMove[1]));
-		} 
-
-		// If there is an additional message in the move (draw or promotion)
-		if(subMove.length == 3){
-			if(subMove[2].equals("draw?")){
-				ret.message = ReturnPlay.Message.DRAW;
+		if(!curPiece.equals(null) && curPiece.move(subMove[1])){
+			for(ReturnPiece it : pieces){
+				if ((""+it.pieceFile+it.pieceRank).equals(subMove[1])) {
+					pieces.remove(it);
+					break;
+				}
+				
+			}
+			
+			try {
+				String newRank = subMove[1].replaceAll("[^0-9]", "");
+				curPiece.pieceRank = Integer.parseInt(newRank);
+			} 
+			catch (NumberFormatException e) {
+				System.out.println("Error: New Rank is not valid");
+			}
+			
+			switch (subMove[1].charAt(0)) {
+				case 'a':
+					curPiece.pieceFile = PieceFile.a;
+					break;
+				case 'b':
+					curPiece.pieceFile = PieceFile.b;
+					break;
+				case 'c':
+					curPiece.pieceFile = PieceFile.c;
+					break;
+				case 'd':
+					curPiece.pieceFile = PieceFile.d;
+					break;
+				case 'e':
+					curPiece.pieceFile = PieceFile.e;
+					break;
+				case 'f':
+					curPiece.pieceFile = PieceFile.f;
+					break;
+				case 'g':
+					curPiece.pieceFile = PieceFile.g;
+					break;
+				case 'h':
+					curPiece.pieceFile = PieceFile.h;
+					break;
 			}
 		}
 		
-		if(player == Player.white) player = Player.white;
+
+		// If there is an additional message in the move (draw or promotion)
+		if(subMove.length == 3 && subMove[2].equals("draw?")) ret.message = ReturnPlay.Message.DRAW;
+		
+		if(player == Player.white) player = Player.black;
 		else player = Player.white;
+		ret.piecesOnBoard = pieces;
 		return ret;
 	}
 	
@@ -93,8 +134,16 @@ public class Chess {
 	public static void start() {
 		String board[][] = PlayChess.makeBlankBoard();
 		pieces = new ArrayList<ReturnPiece>();
+		
+
+		//Testing Code
+
+		pieces.add(new Queen(Player.white));
+		pieces.add(new Queen(Player.black));
+
 
 		//Fill board with starting positions for pieces 
+		/* Commented out for testing purposes 
 		for(Player player : Player.values()){
 			pieces.add(new King(player));
 			pieces.add(new Queen(player));
@@ -109,13 +158,12 @@ public class Chess {
 				pieces.add(new Pawn(player, i));
 			}
 		}
-
+		*/
 		// 1st turn is always white
+		
 		player = Player.white;
-
-		System.out.println("Calling printBoard:\n");
 		PlayChess.printBoard(pieces);
-		System.out.println("Calling printPiecesOnBoard:\n");
 		PlayChess.printPiecesOnBoard(pieces, board);
+
 	}
 }
