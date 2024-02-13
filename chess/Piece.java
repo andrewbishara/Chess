@@ -1,9 +1,156 @@
 package chess;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public abstract class Piece extends ReturnPiece{
 
-    public abstract boolean validMove(String move);
-    public abstract ReturnPiece move(String move);
+    public abstract boolean isValidMove(String move);
+    public abstract boolean move(String move);
+
+    public ArrayList<String> straightMoves(ArrayList<ReturnPiece> pieces){
+        ArrayList<ReturnPiece> rankBlock = new ArrayList<ReturnPiece>();
+        ArrayList<ReturnPiece> fileBlock = new ArrayList<ReturnPiece>();
+        int minRank = 1;
+        int maxRank = 8;
+        String minFile = "a";
+        String maxFile = "h";
+
+        // Fill ArrayLists with pieces that could block movement
+        for(ReturnPiece it : pieces){
+            if(it.pieceFile == this.pieceFile) rankBlock.add(it);
+            if(it.pieceRank == this.pieceRank) fileBlock.add(it);
+        } 
+
+        // Check vertical spaces that are free to move to
+        int[] rankBlockInts = rankBlock.stream().mapToInt(ReturnPiece -> ReturnPiece.pieceRank).toArray();
+        Arrays.sort(rankBlockInts);
+        for(int i=0; i <= rankBlockInts.length-1 ; i++){
+            //if the rankBlockInts[i] is the moving piece
+            if(rankBlockInts[i] == this.pieceRank){
+                //Check ranks below moving piece's
+                if(i == 0) minRank = 1;
+                else {
+                    for(ReturnPiece it : rankBlock){
+                        if(it.pieceRank == rankBlockInts[i-1]){
+                            String sub = ""+it.pieceType;
+                            if(sub.charAt(0) == 'w'){
+                                if(Chess.player == Chess.Player.white) minRank = rankBlockInts[i-1] + 1;
+                                else{
+                                    minRank = rankBlockInts[i-1];
+                                }
+                            }
+                            else{
+                                if(Chess.player == Chess.Player.black) minRank = rankBlockInts[i-1] + 1;
+                                else{
+                                     minRank = rankBlockInts[i-1];
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                //Check ranks above moving piece's
+                if(i == rankBlockInts.length -1) maxRank = 8;
+                else {
+                    for(ReturnPiece it : rankBlock){
+                        if(it.pieceRank == rankBlockInts[i+1]){
+                            String sub = ""+it.pieceType;
+                            if(sub.charAt(0) == 'w'){
+                                if(Chess.player == Chess.Player.white) maxRank = rankBlockInts[i+1] - 1;
+                                else{
+                                    maxRank = rankBlockInts[i+1];
+                                }
+                            }
+                            else{
+                                if(Chess.player == Chess.Player.black) maxRank = rankBlockInts[i+1] - 1;
+                                else{
+                                    maxRank = rankBlockInts[i+1];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                i = rankBlockInts.length-1;
+            }
+        }
+
+        String curFile = ""+this.pieceFile;
+        String[] fileBlockStrings = new String[fileBlock.size()];
+        for(int i = 0; i < fileBlock.size(); i++){
+            ReturnPiece.PieceFile file = fileBlock.get(i).pieceFile;
+            fileBlockStrings[i] = ""+file;
+        }
+        Arrays.sort(fileBlockStrings);
+        for(int i=0; i <= fileBlockStrings.length-1 ; i++){
+            //if the fileBlockInts[i] is the moving piece
+            if(fileBlockStrings[i].equals(curFile)){
+                //Check files below moving piece's
+                if(i == 0) minFile = "a";
+                else {
+                    String itPieceFile;
+                    for(ReturnPiece it : fileBlock){
+                        itPieceFile = ""+it.pieceFile;
+                        if(itPieceFile.equals(fileBlockStrings[i-1])){
+                            String sub = ""+it.pieceType;
+                            if(sub.charAt(0) == 'w'){
+                                if(Chess.player == Chess.Player.white) minFile = "" + (fileBlockStrings[i-1].charAt(0) + 1);
+                                else{
+                                    minFile = fileBlockStrings[i-1];
+                                }
+                            }
+                            else{
+                                if(Chess.player == Chess.Player.black) minFile = "" + (fileBlockStrings[i-1].charAt(0) + 1);
+                                else{
+                                     minFile = fileBlockStrings[i-1];
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                //Check files above moving piece's
+                if(i == fileBlockStrings.length -1) maxFile = "h";
+                else {
+                    for(ReturnPiece it : fileBlock){
+                        String itPieceFile = "" + it.pieceFile;
+                        if(itPieceFile.equals(fileBlockStrings[i+1])){
+                            String sub = ""+it.pieceType;
+                            if(sub.charAt(0) == 'w'){
+                                if(Chess.player == Chess.Player.white) maxFile = "" + (fileBlockStrings[i+1].charAt(0) - 1);
+                                else{
+                                    maxFile = fileBlockStrings[i+1];
+                                }
+                            }
+                            else{
+                                if(Chess.player == Chess.Player.black) maxFile = "" + (fileBlockStrings[i+1].charAt(0) - 1);
+                                else{
+                                    maxFile = fileBlockStrings[i+1];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                i = rankBlockInts.length-1;
+            }
+        }
+
+        ArrayList<String> ret = new ArrayList<String>();
+        for(int i = minRank; i <= maxRank; i++){
+            ret.add(""+this.pieceFile+i);
+        }
+        char c = minFile.charAt(0);
+        while (c <= maxFile.charAt(0)) {
+            ret.add("" + c + this.pieceRank);
+            c++;
+        }
+
+        return ret;
+        
+        
+    }
 
 }
 
@@ -24,14 +171,14 @@ class King extends Piece{
         }
     }
 
-    public boolean validMove(String move){
+    public boolean isValidMove(String move){
         return true;
     }
 
     //Takes in a position to move to, sets fields to ending position
-    public ReturnPiece move(String move){
+    public boolean move(String move){
 
-        return new ReturnPiece();
+        return false;
     }
 }
 
@@ -51,12 +198,19 @@ class Queen extends Piece{
                 break;
         }
     }
-    public boolean validMove(String move){
-        return true;
+    public boolean isValidMove(String move){
+        ArrayList<String> validMoves = straightMoves(Chess.pieces);
+        for(String it : validMoves){
+            if(it.equals(move)) return true;
+        }
+        return false;
     }
 
-    public ReturnPiece move(String move){
-        return new ReturnPiece();
+    public boolean move(String move){
+        if(isValidMove(move)){
+            return true;
+        }
+        return false;
     }
 }
 
@@ -78,12 +232,12 @@ class Rook extends Piece{
         else pieceFile = PieceFile.h;
     }
 
-    public boolean validMove(String move){
+    public boolean isValidMove(String move){
         return true;
     }
 
-    public ReturnPiece move(String move){
-        return new ReturnPiece();
+    public boolean move(String move){
+        return false;
     }
 }
 
@@ -105,12 +259,12 @@ class Bishop extends Piece{
         else pieceFile = PieceFile.f;
     }
 
-    public boolean validMove(String move){
+    public boolean isValidMove(String move){
         return true;
     }
 
-    public ReturnPiece move(String move){
-        return new ReturnPiece();
+    public boolean move(String move){
+        return false;
     }
 }
 
@@ -131,12 +285,12 @@ class Knight extends Piece{
         else pieceFile = PieceFile.g;
     }
 
-    public boolean validMove(String move){
+    public boolean isValidMove(String move){
         return true;
     }
 
-    public ReturnPiece move(String move){
-        return new ReturnPiece();
+    public boolean move(String move){
+        return false;
     }
 }
 
@@ -181,11 +335,11 @@ class Pawn extends Piece{
         }
     }
 
-    public boolean validMove(String move){
+    public boolean isValidMove(String move){
         return true;
     }
 
-    public ReturnPiece move(String move){
-        return new ReturnPiece();
+    public boolean move(String move){
+        return false;
     }
 }
