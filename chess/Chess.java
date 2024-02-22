@@ -61,6 +61,7 @@ public class Chess {
 		if(move.equals("resign")){
 			if(player == Player.black) ret.message = ReturnPlay.Message.RESIGN_BLACK_WINS;
 			else ret.message = ReturnPlay.Message.RESIGN_WHITE_WINS;
+			return ret;
 		}
 
 		// Split move into starting position and ending position
@@ -70,9 +71,24 @@ public class Chess {
 		for(ReturnPiece it : pieces){
 			if(subMove[0].equals(""+it.pieceFile+it.pieceRank)){
 				curPiece = (Piece)it;
+				if((it.pieceType.ordinal() <= 5 && player != Player.white) ||
+						(it.pieceType.ordinal() >5 && player != Player.black)){
+					System.out.println("\nError: Wrong color piece was attempted to move");
+					ret.message = ReturnPlay.Message.ILLEGAL_MOVE;
+					ret.piecesOnBoard = pieces;
+					return ret;
+				}
 			}
+
+			
 		}
-		if(!curPiece.equals(null) && curPiece.move(subMove[1])){
+		if(curPiece == null){
+			ret.message = ReturnPlay.Message.ILLEGAL_MOVE;
+			ret.piecesOnBoard = pieces;
+			System.out.println("Error: Empty square was attempted to move");
+			return ret;
+		}
+		if(curPiece.move(subMove[1])){
 			for(ReturnPiece it : pieces){
 				if ((""+it.pieceFile+it.pieceRank).equals(subMove[1])) {
 					pieces.remove(it);
@@ -140,6 +156,7 @@ public class Chess {
 
 		pieces.add(new Queen(Player.white));
 		pieces.add(new Queen(Player.black));
+		pieces.add(new Pawn(Player.black, 2));
 
 
 		//Fill board with starting positions for pieces 
@@ -163,7 +180,5 @@ public class Chess {
 		
 		player = Player.white;
 		PlayChess.printBoard(pieces);
-		PlayChess.printPiecesOnBoard(pieces, board);
-
 	}
 }
