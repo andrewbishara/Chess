@@ -3,6 +3,8 @@ package chess;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import chess.Chess.Player;
+
 public abstract class Piece extends ReturnPiece{
 
     public abstract boolean move(String move);
@@ -310,7 +312,52 @@ class Knight extends Piece{
         ArrayList<String> validMoves = new ArrayList<String>();
         ReturnPiece[][] board = fillBoard(pieces);
 
-        // fill validMoves with moves 
+        int r = pieceRank -1;
+        int f = pieceFile.ordinal();
+        if(f - 2 >= 0){
+            if(r+1 <= 7 && (board[f-2][r+1] == null || (board[f-2][r+1].pieceType.ordinal() <=5 && Chess.player == Player.black)
+                    || (board[f-2][r+1].pieceType.ordinal() > 5 && Chess.player == Player.white))) {
+                validMoves.add("" + ReturnPiece.PieceFile.values()[f-2] + (r+2));
+            }
+            if(r-1 >= 0 && (board[f-2][r-1] == null || (board[f-2][r-1].pieceType.ordinal() <=5 && Chess.player == Player.black)
+                    || (board[f-2][r-1].pieceType.ordinal() > 5 && Chess.player == Player.white))) {
+                validMoves.add("" + ReturnPiece.PieceFile.values()[f-2] + (r));
+            }
+
+        }
+        if(f + 2 <= 7){
+            if(r+1 <= 7 && (board[f+2][r+1] == null || (board[f+2][r+1].pieceType.ordinal() <=5 && Chess.player == Player.black)
+                    || (board[f+2][r+1].pieceType.ordinal() > 5 && Chess.player == Player.white))) {
+                validMoves.add("" + ReturnPiece.PieceFile.values()[f+2] + (r+2));
+            }
+            if(r-1 >= 0 && (board[f+2][r-1] == null || (board[f+2][r-1].pieceType.ordinal() <=5 && Chess.player == Player.black)
+                    || (board[f+2][r-1].pieceType.ordinal() > 5 && Chess.player == Player.white))) {
+                validMoves.add("" + ReturnPiece.PieceFile.values()[f+2] + (r));
+            }
+
+        }
+        if(r - 2 >= 0){
+            if(f+1 <= 7 && (board[f+1][r-2] == null || (board[f+1][r-2].pieceType.ordinal() <=5 && Chess.player == Player.black)
+                    || (board[f+1][r-2].pieceType.ordinal() > 5 && Chess.player == Player.white))) {
+                validMoves.add("" + ReturnPiece.PieceFile.values()[f+1] + (r-1));
+            }
+            if(f-1 >= 0 && (board[f-1][r-2] == null || (board[f-1][r-2].pieceType.ordinal() <=5 && Chess.player == Player.black)
+                    || (board[f-1][r-2].pieceType.ordinal() > 5 && Chess.player == Player.white))) {
+                validMoves.add("" + ReturnPiece.PieceFile.values()[f-1] + (r-1));
+            }
+
+        }
+        if(r + 2 <= 7){
+            if(f+1 <= 7 && (board[f+1][r+2] == null || (board[f+1][r+2].pieceType.ordinal() <=5 && Chess.player == Player.black)
+                    || (board[f+1][r+2].pieceType.ordinal() > 5 && Chess.player == Player.white))) {
+                validMoves.add("" + ReturnPiece.PieceFile.values()[f+1] + (r+3));
+            }
+            if(f-1 >= 0 && (board[f-1][r+2] == null || (board[f-1][r+2].pieceType.ordinal() <=5 && Chess.player == Player.black)
+                    || (board[f-1][r+2].pieceType.ordinal() > 5 && Chess.player == Player.white))) {
+                validMoves.add("" + ReturnPiece.PieceFile.values()[f-1] + (r+3));
+            }
+
+        }
 
         return validMoves;
     }
@@ -319,6 +366,8 @@ class Knight extends Piece{
 }
 
 class Pawn extends Piece{
+
+    private boolean hasMoved = false;
 
     public Pawn(Chess.Player color, int typeIteration){
         switch (color) {
@@ -360,6 +409,52 @@ class Pawn extends Piece{
     }
 
     public boolean move(String move){
+        ArrayList<String> validMoves = getValidPawnMoves(Chess.pieces);
+        for(String it : validMoves){
+            if(it.equals(move)) return true;
+        }
+        System.out.println("Error: The target square is not a valid move");
         return false;
+    }
+
+    private ArrayList<String> getValidPawnMoves(ArrayList<ReturnPiece> pieces){
+        ArrayList<String> validMoves = new ArrayList<String>();
+        ReturnPiece[][] board = fillBoard(pieces);
+
+        int r = pieceRank-1;
+        int f = pieceFile.ordinal();
+
+        //For white pawns
+        if(Chess.player == Chess.Player.white){
+            if(r+1 <7 && board[pieceFile.ordinal()][r+1] == null){
+                validMoves.add("" + pieceFile + (r + 2));
+                if(board[f-1][r+1] != null && board[f-1][r+1].pieceType.ordinal() >5) 
+                    validMoves.add("" + ReturnPiece.PieceFile.values()[f-1] + (r+2));
+                if(board[f+1][r+1] != null && board[f+1][r+1].pieceType.ordinal() >5) 
+                    validMoves.add("" + ReturnPiece.PieceFile.values()[f+1] + (r+2));
+                if(!hasMoved && r+2 < 7 && board[pieceFile.ordinal()][r+2] == null) {
+                    validMoves.add("" + pieceFile + (r+3));
+                    hasMoved = true;
+                }
+            }
+        } 
+        //For black pawns
+        else{
+            if(r-1 > 0 && board[pieceFile.ordinal()][r-1] == null){
+                validMoves.add("" + pieceFile + (r));
+                if(board[f-1][r-1] != null && board[f-1][r-1].pieceType.ordinal() <=5) 
+                    validMoves.add("" + ReturnPiece.PieceFile.values()[f-1] + (r));
+                if(board[f+1][r-1] != null && board[f+1][r-1].pieceType.ordinal() <=5) 
+                    validMoves.add("" + ReturnPiece.PieceFile.values()[f+1] + (r));
+                if(!hasMoved && r-2 > 0 && board[pieceFile.ordinal()][r-2] == null) {
+                    validMoves.add("" + pieceFile + (r-1));
+                    hasMoved = true;
+                }
+            } 
+        }
+
+
+
+        return validMoves;
     }
 }
