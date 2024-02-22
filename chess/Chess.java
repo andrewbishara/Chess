@@ -131,6 +131,11 @@ public class Chess {
 					curPiece.pieceFile = PieceFile.h;
 					break;
 			}
+		}else{
+			System.out.println("Error: Invalid move");
+			ret.message = Message.ILLEGAL_MOVE;
+			ret.piecesOnBoard = pieces;
+			return ret;
 		}
 		
 
@@ -152,15 +157,8 @@ public class Chess {
 		pieces = new ArrayList<ReturnPiece>();
 		
 
-		//Testing Code
-
-		pieces.add(new Queen(Player.white));
-		pieces.add(new Queen(Player.black));
-		pieces.add(new Pawn(Player.black, 2));
-
 
 		//Fill board with starting positions for pieces 
-		/* Commented out for testing purposes 
 		for(Player player : Player.values()){
 			pieces.add(new King(player));
 			pieces.add(new Queen(player));
@@ -175,7 +173,6 @@ public class Chess {
 				pieces.add(new Pawn(player, i));
 			}
 		}
-		*/
 		// 1st turn is always white
 		
 		player = Player.white;
