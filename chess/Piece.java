@@ -1,13 +1,42 @@
 package chess;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-
 import chess.Chess.Player;
 
 public abstract class Piece extends ReturnPiece{
 
     public abstract boolean move(String move);
+
+    // Checks if either king is in check, returns 0 if neither, -1 if black king is checked, and 1 if white king
+    public static int isCheck(ArrayList<ReturnPiece> pieces){
+        Piece curPiece;
+        ReturnPiece blackKing = null;
+        ReturnPiece whiteKing = null;
+        ArrayList<ReturnPiece> whites = new ArrayList<ReturnPiece>();
+        ArrayList<ReturnPiece> blacks = new ArrayList<ReturnPiece>();
+
+        for(ReturnPiece it : pieces){
+            if(it.pieceType == PieceType.BK) blackKing = it;
+            else if(it.pieceType == PieceType.WK) whiteKing = it;
+            else if(it.pieceType.ordinal() <= 5) whites.add(it);
+            else blacks.add(it);
+        }
+
+        Chess.player = Player.white;
+        for(ReturnPiece it : whites){
+            curPiece = (Piece)it;
+            if(curPiece.move(""+ blackKing.pieceFile + blackKing.pieceRank)) return -1;
+
+        }
+
+        Chess.player = Player.black;
+        for(ReturnPiece it : blacks){
+            curPiece = (Piece)it;
+            if(curPiece.move("" + whiteKing.pieceFile + whiteKing.pieceRank)) return 1;
+        }
+
+        return 0;
+    }
 
     protected ReturnPiece[][] fillBoard(ArrayList<ReturnPiece> pieces){
         ReturnPiece[][] board = new ReturnPiece[8][8];
@@ -17,7 +46,6 @@ public abstract class Piece extends ReturnPiece{
 
         return board;
     }
-
 
     protected ArrayList<String> getValidStraightMoves(ArrayList<ReturnPiece> pieces){
 
@@ -165,8 +193,8 @@ public abstract class Piece extends ReturnPiece{
 
         return validMoves;
     }
-}
 
+}
 
 class King extends Piece{
 
@@ -187,8 +215,49 @@ class King extends Piece{
 
     //Takes in a position to move to, sets fields to ending position
     public boolean move(String move){
-
+        ArrayList<String> validMoves = getValidKingMoves(Chess.pieces);
+        for(String it : validMoves){
+            if(it.equals(move)) return true;
+        }
         return false;
+    }
+
+    private ArrayList<String> getValidKingMoves(ArrayList<ReturnPiece> pieces){
+        ArrayList<String> validMoves = new ArrayList<String>();
+        ReturnPiece[][] board = fillBoard(pieces);
+
+        int r = pieceRank -1;
+        int f = pieceFile.ordinal();
+
+        // fill validMoves with king moves one rank above and below, including diagonal
+        if(r+1 <= 7){
+            for(int i = f -1; i<=f+1; i++){
+                if(board[i][r+1] == null || (board[i][r+1].pieceType.ordinal() >5 && Chess.player == Player.white) 
+                        || (board[i][r+1].pieceType.ordinal() <= 5 && Chess.player == Player.black))
+                    validMoves.add("" + ReturnPiece.PieceFile.values()[i] + (r+2));
+            }
+        }
+        if(r-1 >= 0){
+            for(int i = f -1; i<=f+1; i++){
+                if(board[i][r-1] == null || (board[i][r-1].pieceType.ordinal() >5 && Chess.player == Player.white) 
+                        || (board[i][r-1].pieceType.ordinal() <= 5 && Chess.player == Player.black))
+                    validMoves.add("" + ReturnPiece.PieceFile.values()[i] + (r));
+            }
+        }
+
+        if(f-1 >= 0){
+            if(board[f-1][r] == null || (board[f-1][r].pieceType.ordinal() > 5 && Chess.player == Player.white)
+                    || (board[f-1][r].pieceType.ordinal() <= 5 && Chess.player == Player.black))
+                validMoves.add("" + ReturnPiece.PieceFile.values()[f-1] + (r+1));
+        }
+
+        if(f+1 <= 7){
+            if(board[f+1][r] == null || (board[f+1][r].pieceType.ordinal() > 5 && Chess.player == Player.white)
+                    || (board[f+1][r].pieceType.ordinal() <= 5 && Chess.player == Player.black))
+                validMoves.add("" + ReturnPiece.PieceFile.values()[f+1] + (r+1));
+        }
+
+        return validMoves;
     }
 }
 
@@ -209,6 +278,7 @@ class Queen extends Piece{
         }
     }
     public boolean move(String move){
+
         ArrayList<String> validMoves = getValidDiagonalMoves(Chess.pieces);
         for(String it : validMoves){
             if(it.equals(move)) return true;
@@ -217,7 +287,6 @@ class Queen extends Piece{
         for(String it : validMoves){
             if(it.equals(move)) return true;
         }
-        System.out.println("Error: The target square is not a valid move");
         return false;
     }
 
@@ -247,7 +316,6 @@ class Rook extends Piece{
         for(String it : validMoves){
             if(it.equals(move)) return true;
         }
-        System.out.println("Error: The target square is not a valid move");
         return false;
     }
 }
@@ -277,7 +345,6 @@ class Bishop extends Piece{
         for(String it : validMoves){
             if(it.equals(move)) return true;
         }
-        System.out.println("Error: The target square is not a valid move");
         return false;
     }
 }
@@ -304,7 +371,6 @@ class Knight extends Piece{
         for(String it : validMoves){
             if(it.equals(move)) return true;
         }
-        System.out.println("Error: The target square is not a valid move");
         return false;
     }
 
@@ -367,7 +433,7 @@ class Knight extends Piece{
 
 class Pawn extends Piece{
 
-    private boolean hasMoved = false;
+    public boolean hasMoved = false;
 
     public Pawn(Chess.Player color, int typeIteration){
         switch (color) {
@@ -410,10 +476,15 @@ class Pawn extends Piece{
 
     public boolean move(String move){
         ArrayList<String> validMoves = getValidPawnMoves(Chess.pieces);
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        
         for(String it : validMoves){
-            if(it.equals(move)) return true;
+            if(it.equals(move)){
+                if(!(stack[2].toString().contains("isCheck")))
+                    hasMoved = true;
+                return true;
+            }
         }
-        System.out.println("Error: The target square is not a valid move");
         return false;
     }
 
@@ -426,15 +497,14 @@ class Pawn extends Piece{
 
         //For white pawns
         if(Chess.player == Chess.Player.white){
-            if(r+1 <7 && board[pieceFile.ordinal()][r+1] == null){
+            if(r+1 <7 && board[f][r+1] == null){
                 validMoves.add("" + pieceFile + (r + 2));
-                if(board[f-1][r+1] != null && board[f-1][r+1].pieceType.ordinal() >5) 
+                if((f-1 >= 0) && board[f-1][r+1] != null && board[f-1][r+1].pieceType.ordinal() >5) 
                     validMoves.add("" + ReturnPiece.PieceFile.values()[f-1] + (r+2));
-                if(board[f+1][r+1] != null && board[f+1][r+1].pieceType.ordinal() >5) 
+                if((f+1 <= 7) &&board[f+1][r+1] != null && board[f+1][r+1].pieceType.ordinal() >5) 
                     validMoves.add("" + ReturnPiece.PieceFile.values()[f+1] + (r+2));
                 if(!hasMoved && r+2 < 7 && board[pieceFile.ordinal()][r+2] == null) {
                     validMoves.add("" + pieceFile + (r+3));
-                    hasMoved = true;
                 }
             }
         } 
@@ -442,13 +512,12 @@ class Pawn extends Piece{
         else{
             if(r-1 > 0 && board[pieceFile.ordinal()][r-1] == null){
                 validMoves.add("" + pieceFile + (r));
-                if(board[f-1][r-1] != null && board[f-1][r-1].pieceType.ordinal() <=5) 
+                if((f-1 >= 0) && board[f-1][r-1] != null && board[f-1][r-1].pieceType.ordinal() <=5) 
                     validMoves.add("" + ReturnPiece.PieceFile.values()[f-1] + (r));
-                if(board[f+1][r-1] != null && board[f+1][r-1].pieceType.ordinal() <=5) 
+                if((f+1 <= 7) && board[f+1][r-1] != null && board[f+1][r-1].pieceType.ordinal() <=5) 
                     validMoves.add("" + ReturnPiece.PieceFile.values()[f+1] + (r));
                 if(!hasMoved && r-2 > 0 && board[pieceFile.ordinal()][r-2] == null) {
                     validMoves.add("" + pieceFile + (r-1));
-                    hasMoved = true;
                 }
             } 
         }
@@ -456,5 +525,13 @@ class Pawn extends Piece{
 
 
         return validMoves;
+    }
+
+    public boolean getHasMoved(){
+        return hasMoved;
+    }
+
+    public void setHasMoved(boolean hasMoved){
+        this.hasMoved = hasMoved;
     }
 }

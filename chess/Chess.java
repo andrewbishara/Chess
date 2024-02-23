@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.lang.NumberFormatException;
 
 import chess.ReturnPiece.PieceFile;
+import chess.ReturnPiece.PieceType;
 import chess.ReturnPlay.Message;
 
 class ReturnPiece {
@@ -56,6 +57,8 @@ public class Chess {
 	public static ReturnPlay play(String move) {
 	
 		ReturnPlay ret = new ReturnPlay();
+		
+		ReturnPiece rem = null;
 
 		//Checks for resign first
 		if(move.equals("resign")){
@@ -79,23 +82,42 @@ public class Chess {
 					return ret;
 				}
 			}
-
-			
 		}
+
+		// Check to see if piece is on the board
 		if(curPiece == null){
 			ret.message = ReturnPlay.Message.ILLEGAL_MOVE;
 			ret.piecesOnBoard = pieces;
 			System.out.println("Error: Empty square was attempted to move");
 			return ret;
 		}
+
+		// Save a copy of moving piece in case move makes check
+		ReturnPiece temp;
+		if(curPiece instanceof Pawn){temp = new Pawn(player, 0);}
+		else if(curPiece instanceof Rook){  temp = new Rook(player,0);}
+		else if(curPiece instanceof Knight){  temp = new Knight(player, 0);}
+		else if(curPiece instanceof Bishop){  temp = new Bishop(player, 0);}
+		else if(curPiece instanceof Queen){  temp = new Queen(player);}
+		else { temp = new King(player);}
+		temp.pieceFile = curPiece.pieceFile;
+		temp.pieceRank = curPiece.pieceRank;
+		temp.pieceType = curPiece.pieceType; 
+		Piece curPieceCopy = (Piece)temp;
+		
+
+		// Check if there is a capture then move piece to new square
 		if(curPiece.move(subMove[1])){
 			for(ReturnPiece it : pieces){
 				if ((""+it.pieceFile+it.pieceRank).equals(subMove[1])) {
+					rem = it;
 					pieces.remove(it);
 					break;
 				}
 				
 			}
+
+
 			
 			try {
 				String newRank = subMove[1].replaceAll("[^0-9]", "");
@@ -131,6 +153,30 @@ public class Chess {
 					curPiece.pieceFile = PieceFile.h;
 					break;
 			}
+
+			// Check for check/checkmate, if not, restore pieces
+			Player storePlayer = player;
+			if((player == Player.white && Piece.isCheck(pieces) == 1) || player == Player.black && Piece.isCheck(pieces) == -1){
+				player = storePlayer;
+				if(rem != null) pieces.add(rem);
+				for(ReturnPiece it : pieces){
+					if(it.equals(curPiece)){
+						it.pieceFile = curPieceCopy.pieceFile;
+						it.pieceRank = curPieceCopy.pieceRank;
+					}
+				}
+				System.out.println("Error: Cannot let own king get checked");
+				ret.message = Message.ILLEGAL_MOVE;
+				ret.piecesOnBoard = pieces;
+				return ret;
+			}
+			else{
+				player = storePlayer;
+				if((player == Player.white && Piece.isCheck(pieces) == -1) || (player == Player.black && Piece.isCheck(pieces) == 1))
+					ret.message = Message.CHECK;
+				player = storePlayer;
+				
+			}
 		}else{
 			System.out.println("Error: Invalid move");
 			ret.message = Message.ILLEGAL_MOVE;
@@ -153,7 +199,7 @@ public class Chess {
 	 * This method should reset the game, and start from scratch.
 	 */
 	public static void start() {
-		String board[][] = PlayChess.makeBlankBoard();
+		//String board[][] = PlayChess.makeBlankBoard();
 		pieces = new ArrayList<ReturnPiece>();
 		
 
@@ -169,7 +215,7 @@ public class Chess {
 				pieces.add(new Knight(player, i));
 			}
 
-			for(int i = 0; i < 8; i++){
+		 	for(int i = 0; i < 8; i++){
 				pieces.add(new Pawn(player, i));
 			}
 		}
