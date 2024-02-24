@@ -98,6 +98,10 @@ public class Chess {
 				ret.piecesOnBoard = pieces;
 				return ret;
 			} 
+			if(curPiece instanceof Pawn){
+				Pawn temp = (Pawn) curPiece;
+				temp.hasMoved = true;
+			}
 		}else{
 			ret.message = Message.ILLEGAL_MOVE;
 			ret.piecesOnBoard = pieces;
