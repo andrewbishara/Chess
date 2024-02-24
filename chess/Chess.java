@@ -101,6 +101,11 @@ public class Chess {
 			if(curPiece instanceof Pawn){
 				Pawn temp = (Pawn) curPiece;
 				temp.hasMoved = true;
+				if(temp.pieceRank == 8) {
+					pieces.remove(temp);
+					if(subMove.length == 3) pieces.add(temp.promote(pieces, subMove[2]));
+					else pieces.add(temp.promote(pieces, ""));
+				}
 			}
 		}else{
 			ret.message = Message.ILLEGAL_MOVE;
@@ -108,6 +113,8 @@ public class Chess {
 			return ret;
 		}
 		
+		System.out.println("TEST:");
+		PlayChess.printBoard(pieces);
 		if(Piece.isCheck(pieces, player)){
 			if(Piece.isMate(pieces, player)){
 				if(player == Player.white) ret.message = Message.CHECKMATE_WHITE_WINS;
@@ -147,11 +154,11 @@ public class Chess {
 			pieces.add(new King(player));
 			pieces.add(new Queen(player));
 
-			for(int i = 0; i < 2; i++){
+			/* for(int i = 0; i < 2; i++){
 				pieces.add(new Rook(player, i));
 				pieces.add(new Bishop(player, i));
 				pieces.add(new Knight(player, i));
-			}
+			} */
 
 		 	for(int i = 0; i < 8; i++){
 				pieces.add(new Pawn(player, i));
