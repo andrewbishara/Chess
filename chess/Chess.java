@@ -1,7 +1,6 @@
 package chess;
 
 import java.util.ArrayList;
-import java.lang.NumberFormatException;
 
 import chess.ReturnPiece.PieceFile;
 import chess.ReturnPiece.PieceType;
@@ -44,6 +43,8 @@ public class Chess {
 	enum Player { white, black }
 	static Player player;
  	static ArrayList<ReturnPiece> pieces;
+	static boolean whiteMoves[][] = new boolean[8][8]; 
+	static boolean blackMoves[][] = new boolean[8][8];
 	
 	/**
 	 * Plays the next move for whichever player has the turn.
@@ -57,8 +58,6 @@ public class Chess {
 	public static ReturnPlay play(String move) {
 	
 		ReturnPlay ret = new ReturnPlay();
-		
-		ReturnPiece rem = null;
 
 		//Checks for resign first
 		if(move.equals("resign")){
@@ -91,97 +90,32 @@ public class Chess {
 			System.out.println("Error: Empty square was attempted to move");
 			return ret;
 		}
-
-		// Save a copy of moving piece in case move makes check
-		ReturnPiece temp;
-		if(curPiece instanceof Pawn){temp = new Pawn(player, 0);}
-		else if(curPiece instanceof Rook){  temp = new Rook(player,0);}
-		else if(curPiece instanceof Knight){  temp = new Knight(player, 0);}
-		else if(curPiece instanceof Bishop){  temp = new Bishop(player, 0);}
-		else if(curPiece instanceof Queen){  temp = new Queen(player);}
-		else { temp = new King(player);}
-		temp.pieceFile = curPiece.pieceFile;
-		temp.pieceRank = curPiece.pieceRank;
-		temp.pieceType = curPiece.pieceType; 
-		Piece curPieceCopy = (Piece)temp;
 		
-
 		// Check if there is a capture then move piece to new square
-		if(curPiece.move(subMove[1])){
-			for(ReturnPiece it : pieces){
-				if ((""+it.pieceFile+it.pieceRank).equals(subMove[1])) {
-					rem = it;
-					pieces.remove(it);
-					break;
-				}
-				
-			}
-
-
-			
-			try {
-				String newRank = subMove[1].replaceAll("[^0-9]", "");
-				curPiece.pieceRank = Integer.parseInt(newRank);
-			} 
-			catch (NumberFormatException e) {
-				System.out.println("Error: New Rank is not valid");
-			}
-			
-			switch (subMove[1].charAt(0)) {
-				case 'a':
-					curPiece.pieceFile = PieceFile.a;
-					break;
-				case 'b':
-					curPiece.pieceFile = PieceFile.b;
-					break;
-				case 'c':
-					curPiece.pieceFile = PieceFile.c;
-					break;
-				case 'd':
-					curPiece.pieceFile = PieceFile.d;
-					break;
-				case 'e':
-					curPiece.pieceFile = PieceFile.e;
-					break;
-				case 'f':
-					curPiece.pieceFile = PieceFile.f;
-					break;
-				case 'g':
-					curPiece.pieceFile = PieceFile.g;
-					break;
-				case 'h':
-					curPiece.pieceFile = PieceFile.h;
-					break;
-			}
-
-			// Check for check/checkmate, if not, restore pieces
-			Player storePlayer = player;
-			if((player == Player.white && Piece.isCheck(pieces) == 1) || player == Player.black && Piece.isCheck(pieces) == -1){
-				player = storePlayer;
-				if(rem != null) pieces.add(rem);
-				for(ReturnPiece it : pieces){
-					if(it.equals(curPiece)){
-						it.pieceFile = curPieceCopy.pieceFile;
-						it.pieceRank = curPieceCopy.pieceRank;
-					}
-				}
-				System.out.println("Error: Cannot let own king get checked");
+		if(curPiece.isValidMove(pieces, subMove[1], player, false)){
+			if(curPiece.isSelfCheck(pieces, player, subMove[1], false)){
 				ret.message = Message.ILLEGAL_MOVE;
 				ret.piecesOnBoard = pieces;
 				return ret;
-			}
-			else{
-				player = storePlayer;
-				if((player == Player.white && Piece.isCheck(pieces) == -1) || (player == Player.black && Piece.isCheck(pieces) == 1))
-					ret.message = Message.CHECK;
-				player = storePlayer;
-				
-			}
+			} 
 		}else{
-			System.out.println("Error: Invalid move");
 			ret.message = Message.ILLEGAL_MOVE;
 			ret.piecesOnBoard = pieces;
 			return ret;
+		}
+		
+		if(Piece.isCheck(pieces, player)){
+			if(Piece.isMate(pieces, player)){
+				if(player == Player.white) ret.message = Message.CHECKMATE_WHITE_WINS;
+				else ret.message = Message.CHECKMATE_BLACK_WINS;
+				ret.piecesOnBoard = pieces;
+				return ret;
+			}
+			if(player == Player.white) player = Player.black;
+			else player = Player.white;
+			ret.message = Message.CHECK;
+			ret.piecesOnBoard = pieces;
+			return ret;             
 		}
 		
 
