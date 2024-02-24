@@ -1,7 +1,6 @@
 package chess;
 
 import java.util.ArrayList;
-import java.lang.NumberFormatException;
 
 import chess.ReturnPiece.PieceFile;
 import chess.ReturnPiece.PieceType;
@@ -93,25 +92,31 @@ public class Chess {
 		}
 		
 		// Check if there is a capture then move piece to new square
-		if(curPiece.isValidMove(pieces, subMove[1], player)){
-			if(curPiece.isSelfCheck(pieces, player,subMove[1])){
+		if(curPiece.isValidMove(pieces, subMove[1], player, false)){
+			if(curPiece.isSelfCheck(pieces, player, subMove[1], false)){
 				ret.message = Message.ILLEGAL_MOVE;
 				ret.piecesOnBoard = pieces;
 				return ret;
-			}
+			} 
 		}else{
 			ret.message = Message.ILLEGAL_MOVE;
 			ret.piecesOnBoard = pieces;
 			return ret;
 		}
 		
-
-		//Check For check and checkmate
-		/* if(Piece.isCheck(pieces) > 0 || Piece.isCheck(pieces) < 0){
+		if(Piece.isCheck(pieces, player)){
+			if(Piece.isMate(pieces, player)){
+				if(player == Player.white) ret.message = Message.CHECKMATE_WHITE_WINS;
+				else ret.message = Message.CHECKMATE_BLACK_WINS;
+				ret.piecesOnBoard = pieces;
+				return ret;
+			}
+			if(player == Player.white) player = Player.black;
+			else player = Player.white;
 			ret.message = Message.CHECK;
 			ret.piecesOnBoard = pieces;
-			return ret;
-		} */
+			return ret;             
+		}
 		
 
 		// If there is an additional message in the move (draw or promotion)
