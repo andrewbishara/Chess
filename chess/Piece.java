@@ -1,155 +1,396 @@
 package chess;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
+import chess.Chess.Player;
+
+//////////////////////Capturing a piece that puts opponent in check is broken
 
 public abstract class Piece extends ReturnPiece{
 
-    public abstract boolean isValidMove(String move);
-    public abstract boolean move(String move);
+    public Piece(Player player){
+        super();
+    }
 
-    public ArrayList<String> straightMoves(ArrayList<ReturnPiece> pieces){
-        ArrayList<ReturnPiece> rankBlock = new ArrayList<ReturnPiece>();
-        ArrayList<ReturnPiece> fileBlock = new ArrayList<ReturnPiece>();
-        int minRank = 1;
-        int maxRank = 8;
-        String minFile = "a";
-        String maxFile = "h";
+    public abstract boolean isValidMove(ArrayList<ReturnPiece> pieces, String move, Chess.Player player, boolean mate);
 
-        // Fill ArrayLists with pieces that could block movement
-        for(ReturnPiece it : pieces){
-            if(it.pieceFile == this.pieceFile) rankBlock.add(it);
-            if(it.pieceRank == this.pieceRank) fileBlock.add(it);
+    public boolean move(String move){
+        try {
+            String newRank = move.replaceAll("[^0-9]", "");
+            pieceRank = Integer.parseInt(newRank);
         } 
+        catch (NumberFormatException e) {
+            System.out.println("Error: New Rank is not valid");
+            return false;
+        }
+        
+        switch (move.charAt(0)) {
+            case 'a':
+                pieceFile = PieceFile.a;
+                break;
+            case 'b':
+                pieceFile = PieceFile.b;
+                break;
+            case 'c':
+                pieceFile = PieceFile.c;
+                break;
+            case 'd':
+                pieceFile = PieceFile.d;
+                break;
+            case 'e':
+                pieceFile = PieceFile.e;
+                break;
+            case 'f':
+                pieceFile = PieceFile.f;
+                break;
+            case 'g':
+                pieceFile = PieceFile.g;
+                break;
+            case 'h':
+                pieceFile = PieceFile.h;
+                break;
+        }
 
-        // Check vertical spaces that are free to move to
-        int[] rankBlockInts = rankBlock.stream().mapToInt(ReturnPiece -> ReturnPiece.pieceRank).toArray();
-        Arrays.sort(rankBlockInts);
-        for(int i=0; i <= rankBlockInts.length-1 ; i++){
-            //if the rankBlockInts[i] is the moving piece
-            if(rankBlockInts[i] == this.pieceRank){
-                //Check ranks below moving piece's
-                if(i == 0) minRank = 1;
-                else {
-                    for(ReturnPiece it : rankBlock){
-                        if(it.pieceRank == rankBlockInts[i-1]){
-                            String sub = ""+it.pieceType;
-                            if(sub.charAt(0) == 'w'){
-                                if(Chess.player == Chess.Player.white) minRank = rankBlockInts[i-1] + 1;
-                                else{
-                                    minRank = rankBlockInts[i-1];
-                                }
-                            }
-                            else{
-                                if(Chess.player == Chess.Player.black) minRank = rankBlockInts[i-1] + 1;
-                                else{
-                                     minRank = rankBlockInts[i-1];
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                //Check ranks above moving piece's
-                if(i == rankBlockInts.length -1) maxRank = 8;
-                else {
-                    for(ReturnPiece it : rankBlock){
-                        if(it.pieceRank == rankBlockInts[i+1]){
-                            String sub = ""+it.pieceType;
-                            if(sub.charAt(0) == 'w'){
-                                if(Chess.player == Chess.Player.white) maxRank = rankBlockInts[i+1] - 1;
-                                else{
-                                    maxRank = rankBlockInts[i+1];
-                                }
-                            }
-                            else{
-                                if(Chess.player == Chess.Player.black) maxRank = rankBlockInts[i+1] - 1;
-                                else{
-                                    maxRank = rankBlockInts[i+1];
-                                }
-                            }
-                        }
-                    }
-                }
+        return true;
+    }
 
-                i = rankBlockInts.length-1;
+    // Checks if either king is in check, returns 0 if neither, - if black king is checked, and + if white king
+    public static boolean isCheck(ArrayList<ReturnPiece> pieces, Player player){
+        Piece curPiece;
+        ReturnPiece king = null;
+        ArrayList<ReturnPiece> playerPieces = new ArrayList<ReturnPiece>();
+
+        if(player == Player.white){
+            for(ReturnPiece it : Chess.pieces){
+                if(it.pieceType.ordinal()<=5) playerPieces.add(it);
+                if(it.pieceType == PieceType.BK) king = it;
+            }
+        }
+        else{
+            for(ReturnPiece it : Chess.pieces){
+                if(it.pieceType.ordinal()>5) playerPieces.add(it);
+                if(it.pieceType == PieceType.WK) king = it;
             }
         }
 
-        String curFile = ""+this.pieceFile;
-        String[] fileBlockStrings = new String[fileBlock.size()];
-        for(int i = 0; i < fileBlock.size(); i++){
-            ReturnPiece.PieceFile file = fileBlock.get(i).pieceFile;
-            fileBlockStrings[i] = ""+file;
-        }
-        Arrays.sort(fileBlockStrings);
-        for(int i=0; i <= fileBlockStrings.length-1 ; i++){
-            //if the fileBlockInts[i] is the moving piece
-            if(fileBlockStrings[i].equals(curFile)){
-                //Check files below moving piece's
-                if(i == 0) minFile = "a";
-                else {
-                    String itPieceFile;
-                    for(ReturnPiece it : fileBlock){
-                        itPieceFile = ""+it.pieceFile;
-                        if(itPieceFile.equals(fileBlockStrings[i-1])){
-                            String sub = ""+it.pieceType;
-                            if(sub.charAt(0) == 'w'){
-                                if(Chess.player == Chess.Player.white) minFile = "" + (fileBlockStrings[i-1].charAt(0) + 1);
-                                else{
-                                    minFile = fileBlockStrings[i-1];
-                                }
-                            }
-                            else{
-                                if(Chess.player == Chess.Player.black) minFile = "" + (fileBlockStrings[i-1].charAt(0) + 1);
-                                else{
-                                     minFile = fileBlockStrings[i-1];
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                //Check files above moving piece's
-                if(i == fileBlockStrings.length -1) maxFile = "h";
-                else {
-                    for(ReturnPiece it : fileBlock){
-                        String itPieceFile = "" + it.pieceFile;
-                        if(itPieceFile.equals(fileBlockStrings[i+1])){
-                            String sub = ""+it.pieceType;
-                            if(sub.charAt(0) == 'w'){
-                                if(Chess.player == Chess.Player.white) maxFile = "" + (fileBlockStrings[i+1].charAt(0) - 1);
-                                else{
-                                    maxFile = fileBlockStrings[i+1];
-                                }
-                            }
-                            else{
-                                if(Chess.player == Chess.Player.black) maxFile = "" + (fileBlockStrings[i+1].charAt(0) - 1);
-                                else{
-                                    maxFile = fileBlockStrings[i+1];
-                                }
-                            }
-                        }
-                    }
-                }
-
-                i = rankBlockInts.length-1;
+        for(ReturnPiece it : playerPieces){
+            curPiece = (Piece)it;
+            if(curPiece.isValidMove(pieces, "" + king.pieceFile + king.pieceRank, player, false)){
+                return true;
             }
         }
 
-        ArrayList<String> ret = new ArrayList<String>();
-        for(int i = minRank; i <= maxRank; i++){
-            ret.add(""+this.pieceFile+i);
+        return false;
+    }
+
+    public boolean isSelfCheck(ArrayList<ReturnPiece> pieces, Player player, String move, boolean mate){
+        Piece curPiece;
+        ReturnPiece king = null;
+        ArrayList<ReturnPiece> piecesCopy = new ArrayList<ReturnPiece>(pieces);
+        ArrayList<ReturnPiece> opponentPieces = new ArrayList<ReturnPiece>();
+
+        int storeRank = pieceRank;
+        PieceFile storeFile = pieceFile;
+        ReturnPiece rem = null;
+
+        if(player == Player.white){
+            for(ReturnPiece it : pieces){
+                if(it.pieceType.ordinal()>5) {
+                    if(move.equals("" + it.pieceFile + it.pieceRank)) {
+                        piecesCopy.remove(it);
+                        rem = it;
+                    } else opponentPieces.add(it);     
+                } else if(it.pieceType == PieceType.WK) king = it;
+            }
         }
-        char c = minFile.charAt(0);
-        while (c <= maxFile.charAt(0)) {
-            ret.add("" + c + this.pieceRank);
-            c++;
+        else{
+            for(ReturnPiece it : pieces){
+                if(it.pieceType.ordinal()<=5) {
+                    if(move.equals("" + it.pieceFile + it.pieceRank)) {
+                        piecesCopy.remove(it);
+                        rem = it;
+                    } else opponentPieces.add(it);
+                } else if(it.pieceType == PieceType.BK) king = it;
+            }
         }
 
-        return ret;
+        this.move(move);
+        if(player == Player.white){player = Player.black;}
+        else player = Player.white;
+        if(mate) mate = false;
+        for(ReturnPiece it : opponentPieces){
+            curPiece = (Piece)it;
+            if(curPiece.isValidMove(piecesCopy, "" + king.pieceFile + king.pieceRank, player, mate)){
+                pieceRank = storeRank;
+                pieceFile = storeFile;
+                if(rem != null) piecesCopy.add(rem);
+                Chess.pieces = piecesCopy;
+                return true;
+            }
+        }
+
+        Chess.pieces = piecesCopy;
+        return false;
+    }
+
+    public static boolean isMate(ArrayList<ReturnPiece> pieces, Chess.Player player){
+        Piece curPiece;
+        ArrayList<ReturnPiece> opponentPieces = new ArrayList<ReturnPiece>();
+
+        if(player == Player.white){
+            for(ReturnPiece it : Chess.pieces){
+                if(it.pieceType.ordinal()>5) opponentPieces.add(it);
+            }
+        }
+        else{
+            for(ReturnPiece it : Chess.pieces){
+                if(it.pieceType.ordinal()<=5) opponentPieces.add(it);
+            }
+        }
+        if(player == Player.white){player = Player.black;}
+            else player = Player.white;
+        for(ReturnPiece it : opponentPieces){
+            curPiece = (Piece)it;
+            
+            if(curPiece.isValidMove(Chess.pieces, "", player, true)){
+                return false;
+            }
+        }
         
+        return true;
+    }
+
+    protected ReturnPiece[][] fillBoard(ArrayList<ReturnPiece> pieces){
+        ReturnPiece[][] board = new ReturnPiece[8][8];
+        for(ReturnPiece it : pieces){
+            board[it.pieceFile.ordinal()][it.pieceRank -1] = it;
+        }
+
+        return board;
+    }
+
+    protected boolean isValidStraightMove(ArrayList<ReturnPiece> pieces, String move, Chess.Player player, boolean mate){
+        ReturnPiece[][] board = fillBoard(pieces);
         
+        // fill validMoves with all clear spots above piece
+        int i = pieceRank;
+        while(i <= 7 && board[pieceFile.ordinal()][i] == null){
+            if(mate){
+                if(isSelfCheck(pieces, player, "" + pieceFile + (i+1), mate))
+                    return false;
+            } 
+            else if(move.equals("" + pieceFile + (i + 1)))
+                return true;
+            i ++;
+        }
+
+        // if path is blocked and player and target piece are different colors
+        if(i<=7){
+            if((player == Chess.Player.black && board[pieceFile.ordinal()][i].pieceType.ordinal() <= 5 ) ||  
+                    (player == Chess.Player.white && board[pieceFile.ordinal()][i].pieceType.ordinal() > 5 ) ){
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + pieceFile + (i+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + pieceFile + (i + 1))) {
+                    return true;
+                }
+            }
+        }
+
+        // fill validMoves with all clear spots below piece
+        i = pieceRank - 2;
+        while(i >= 0 && board[pieceFile.ordinal()][i] == null){
+            if(mate){
+                if(isSelfCheck(pieces, player, "" + pieceFile + (i+1), mate))
+                    return false;
+            }
+            else if(move.equals("" + pieceFile + (i + 1))) 
+                return true;
+            i --;
+        }
+
+        // if path is blocked and player and target piece are different colors
+        if(i >= 0) {
+            if((player == Chess.Player.black && board[pieceFile.ordinal()][i].pieceType.ordinal() <= 5 ) ||  
+                    (player == Chess.Player.white && board[pieceFile.ordinal()][i].pieceType.ordinal() > 5 ) ){
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + pieceFile + (i+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + pieceFile + (i + 1))) {
+                    return true;
+                }
+            }
+        }
+
+        // fill validMoves with all clear spots left of piece
+        i = pieceFile.ordinal() - 1;
+        while(i >= 0 && board[i][pieceRank - 1] == null){
+            if(mate){
+                if(isSelfCheck(pieces, player, "" + pieceFile + (i+1), mate))
+                    return false;
+            }
+            else if(move.equals("" + pieceFile + (i + 1))) 
+                return true;
+            i--;
+        }
+
+        // if path is blocked and player and target piece are different colors
+        if(i>=0){
+            if((player == Chess.Player.black) && (board[i][pieceRank - 1].pieceType.ordinal() <= 5) || 
+                    (player == Chess.Player.white) && (board[i][pieceRank - 1].pieceType.ordinal() > 5)){
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + pieceFile + (i+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + pieceFile + (i + 1))) {
+                    return true;
+                }
+            }
+        }
+
+        // fill validMoves with all clear spots right of piece
+        i = pieceFile.ordinal() + 1;
+        while(i <= 7 && board[i][pieceRank - 1] == null){
+            if(mate){
+                if(isSelfCheck(pieces, player, "" + pieceFile + (i+1), mate))
+                    return false;
+            }
+            else if(move.equals("" + pieceFile + (i + 1))) return true;
+            i++;
+        }
+
+        // if path is blocked and player and target piece are different colors
+        if(i<=7){
+            if((player == Chess.Player.black) && (board[i][pieceRank - 1].pieceType.ordinal() <= 5) || 
+                    (player == Chess.Player.white) && (board[i][pieceRank - 1].pieceType.ordinal() > 5)){
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + pieceFile + (i+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + pieceFile + (i + 1))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    protected boolean isValidDiagonalMove(ArrayList<ReturnPiece> pieces, String move, Chess.Player player, boolean mate){
+        ReturnPiece[][] board = fillBoard(pieces);
+
+        // fill valid moves with moves up and left
+        int r = pieceRank;
+        int f = pieceFile.ordinal() -1;
+        while((r <= 7 && f >= 0) && board[f][r] == null){
+            if(mate ){
+                if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                    return false;
+            }
+            else if(move.equals("" + ReturnPiece.PieceFile.values()[f]+ (r+1)))
+                return true;
+            r++;
+            f--;
+        }
+
+        // if path is blocked and player and target are different colors
+        if(r <= 7 && f >=0){
+            if((player == Chess.Player.black) && (board[f][r].pieceType.ordinal() <= 5) || 
+                    (player == Chess.Player.white) && (board[f][r].pieceType.ordinal() > 5)){
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f]+ (r+1))){
+                    return true;
+                } 
+                    
+            }
+        }
+
+        r = pieceRank;
+        f = pieceFile.ordinal() + 1;
+        // fill validMoves with moves up and right
+        while((r <= 7 && f <= 7) && (board[f][r] == null)){
+            if(mate ){
+                if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                    return false;
+            }
+            else if(move.equals("" + ReturnPiece.PieceFile.values()[f]+ (r+1))) 
+                return true;
+            r++;
+            f++;
+        }
+
+        // if path is blocked and player and target are different colors
+        if(r <= 7 && f <= 7){
+            if((player == Chess.Player.black) && (board[f][r].pieceType.ordinal() <= 5) || 
+                    (player == Chess.Player.white) && (board[f][r].pieceType.ordinal() > 5)){
+                if(mate ){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f]+ (r+1))) {
+                    return true;
+                }
+            }
+        }
+
+        r = pieceRank - 2;
+        f = pieceFile.ordinal() - 1;
+        // fill validMoves with moves down and left
+        while((r >= 0 && f >= 0) && board[f][r] == null){
+            if(mate){
+                if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                    return false;
+            }
+            else if(move.equals("" + ReturnPiece.PieceFile.values()[f]+ (r+1))) return true;
+            r--;
+            f--;
+        }
+
+        // if path is blocked and player and target are different colors
+        if(r >= 0 && f >=0){
+            if((player == Chess.Player.black) && (board[f][r].pieceType.ordinal() <= 5) || 
+                    (player == Chess.Player.white) && (board[f][r].pieceType.ordinal() > 5)){
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f]+ (r+1))) {
+                    return true;
+                }
+            }
+        }
+
+        r = pieceRank - 2;
+        f = pieceFile.ordinal() + 1;
+        // fill validMoves with moves right and down
+        while((r >= 0 && f <= 7) && board[f][r] == null){
+            if(mate){
+                if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                    return false;
+            }
+            else if(move.equals("" + ReturnPiece.PieceFile.values()[f]+ (r+1))) return true;
+            r--;
+            f++;
+        }
+
+        // if path is blocked and player and target are different colors
+        if(r >= 0 && f <=7){
+            if((player == Chess.Player.black) && (board[f][r].pieceType.ordinal() <= 5) || 
+                    (player == Chess.Player.white) && (board[f][r].pieceType.ordinal() > 5)){
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f]+ (r+1))){
+                    return true;
+                } 
+            }
+        }
+
+        return false;
     }
 
 }
@@ -157,6 +398,7 @@ public abstract class Piece extends ReturnPiece{
 class King extends Piece{
 
     public King(Chess.Player color){
+        super(color);
         pieceFile = PieceFile.e;
         switch (color) {
             case white:
@@ -171,12 +413,67 @@ class King extends Piece{
         }
     }
 
-    public boolean isValidMove(String move){
-        return true;
-    }
+    public boolean isValidMove(ArrayList<ReturnPiece> pieces, String move, Chess.Player player, boolean mate){
+        ReturnPiece[][] board = fillBoard(pieces);
 
-    //Takes in a position to move to, sets fields to ending position
-    public boolean move(String move){
+        int r = pieceRank -1;
+        int f = pieceFile.ordinal();
+
+        // fill validMoves with king moves one rank above and below, including diagonal
+        if(r+1 <= 7){
+            for(int i = f -1; i<=f+1; i++){
+                if(board[i][r+1] == null || (board[i][r+1].pieceType.ordinal() >5 && player == Player.white) 
+                        || (board[i][r+1].pieceType.ordinal() <= 5 && player == Player.black)){
+                    if(mate){
+                        if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[i]+ (r+2), mate))
+                            return false;
+                    }
+                    else if(move.equals("" + ReturnPiece.PieceFile.values()[i] + (r+2))){
+                        return true;
+                    }
+                }
+            }
+        }
+        if(r-1 >= 0){
+            for(int i = f -1; i<=f+1; i++){
+                if(board[i][r-1] == null || (board[i][r-1].pieceType.ordinal() >5 && player == Player.white) 
+                        || (board[i][r-1].pieceType.ordinal() <= 5 && player == Player.black)){
+                    if(mate){
+                        if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[i]+ (r), mate))
+                            return false;
+                    }
+                    else if(move.equals("" + ReturnPiece.PieceFile.values()[i] + (r))){
+                        return true;
+                    }
+                }
+            }
+        }
+
+        if(f-1 >= 0){
+            if(board[f-1][r] == null || (board[f-1][r].pieceType.ordinal() > 5 && player == Player.white)
+                    || (board[f-1][r].pieceType.ordinal() <= 5 && player == Player.black)){
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f-1]+ (r+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f-1] + (r+1))) {
+                    return true;
+                }
+            }
+        }
+
+        if(f+1 <= 7){
+            if(board[f+1][r] == null || (board[f+1][r].pieceType.ordinal() > 5 && player == Player.white)
+                    || (board[f+1][r].pieceType.ordinal() <= 5 && player == Player.black)){
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f+1]+ (r+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f+1] + (r+1))) {
+                    return true;
+                }
+            }
+        }
 
         return false;
     }
@@ -185,6 +482,7 @@ class King extends Piece{
 class Queen extends Piece{
 
     public Queen(Chess.Player color){
+        super(color);
         pieceFile = PieceFile.d;
         switch (color) {
             case white:
@@ -198,18 +496,10 @@ class Queen extends Piece{
                 break;
         }
     }
-    public boolean isValidMove(String move){
-        ArrayList<String> validMoves = straightMoves(Chess.pieces);
-        for(String it : validMoves){
-            if(it.equals(move)) return true;
-        }
-        return false;
-    }
+    
+    public boolean isValidMove(ArrayList<ReturnPiece> pieces, String move, Chess.Player player, boolean mate){
+        if(isValidDiagonalMove(pieces, move, player, mate) || isValidStraightMove(pieces, move, player, mate)) return true;
 
-    public boolean move(String move){
-        if(isValidMove(move)){
-            return true;
-        }
         return false;
     }
 }
@@ -217,6 +507,7 @@ class Queen extends Piece{
 class Rook extends Piece{
 
     public Rook(Chess.Player color, int typeIteration){
+        super(color);
         switch (color) {
             case white:
                 this.pieceType = PieceType.WR;
@@ -232,11 +523,9 @@ class Rook extends Piece{
         else pieceFile = PieceFile.h;
     }
 
-    public boolean isValidMove(String move){
-        return true;
-    }
+    public boolean isValidMove(ArrayList<ReturnPiece> pieces, String move, Chess.Player player, boolean mate){
+        if(isValidStraightMove(pieces, move, player, mate)) return true;
 
-    public boolean move(String move){
         return false;
     }
 }
@@ -244,6 +533,7 @@ class Rook extends Piece{
 class Bishop extends Piece{
 
     public Bishop(Chess.Player color, int typeIteration){
+        super(color);
    
         switch (color) {
             case white:
@@ -259,11 +549,11 @@ class Bishop extends Piece{
         else pieceFile = PieceFile.f;
     }
 
-    public boolean isValidMove(String move){
-        return true;
-    }
 
-    public boolean move(String move){
+
+    public boolean isValidMove(ArrayList<ReturnPiece> pieces, String move, Chess.Player player, boolean mate){
+        if(isValidDiagonalMove(pieces, move, player, mate)) return true;
+
         return false;
     }
 }
@@ -271,6 +561,7 @@ class Bishop extends Piece{
 class Knight extends Piece{
 
     public Knight(Chess.Player color, int typeIteration){
+        super(color);
         switch (color) {
             case white:
                 this.pieceType = PieceType.WN;
@@ -285,18 +576,116 @@ class Knight extends Piece{
         else pieceFile = PieceFile.g;
     }
 
-    public boolean isValidMove(String move){
-        return true;
-    }
+    public boolean isValidMove(ArrayList<ReturnPiece> pieces, String move, Chess.Player player, boolean mate){
+        ReturnPiece[][] board = fillBoard(pieces);
 
-    public boolean move(String move){
+        int r = pieceRank -1;
+        int f = pieceFile.ordinal();
+        if(f - 2 >= 0){
+            if(r+1 <= 7 && (board[f-2][r+1] == null || (board[f-2][r+1].pieceType.ordinal() <=5 && player == Player.black)
+                    || (board[f-2][r+1].pieceType.ordinal() > 5 && player == Player.white))) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f-2]+ (r+2), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f-2] + (r+2))) {
+                    return true;
+                }
+            }
+            if(r-1 >= 0 && (board[f-2][r-1] == null || (board[f-2][r-1].pieceType.ordinal() <=5 && player == Player.black)
+                    || (board[f-2][r-1].pieceType.ordinal() > 5 && player == Player.white))) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f-2]+ (r), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f-2] + (r))) {
+                    return true;
+                }
+            }
+
+        }
+        if(f + 2 <= 7){
+            if(r+1 <= 7 && (board[f+2][r+1] == null || (board[f+2][r+1].pieceType.ordinal() <=5 && player == Player.black)
+                    || (board[f+2][r+1].pieceType.ordinal() > 5 && player == Player.white))) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f+2]+ (r+2), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f+2] + (r+2))) {
+                    return true;
+                }
+            }
+            if(r-1 >= 0 && (board[f+2][r-1] == null || (board[f+2][r-1].pieceType.ordinal() <=5 && player == Player.black)
+                    || (board[f+2][r-1].pieceType.ordinal() > 5 && player == Player.white))) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f+2]+ (r), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f+2] + (r))) {
+                    return true;
+                }
+            }
+
+        }
+        if(r - 2 >= 0){
+            if(f+1 <= 7 && (board[f+1][r-2] == null || (board[f+1][r-2].pieceType.ordinal() <=5 && player == Player.black)
+                    || (board[f+1][r-2].pieceType.ordinal() > 5 && player == Player.white))) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f+1]+ (r-1), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f+1] + (r-1))) {
+                    return true;
+                }
+            }
+            if(f-1 >= 0 && (board[f-1][r-2] == null || (board[f-1][r-2].pieceType.ordinal() <=5 && player == Player.black)
+                    || (board[f-1][r-2].pieceType.ordinal() > 5 && player == Player.white))) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f-1]+ (r-1), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f-1] + (r-1))) {
+                    return true;
+                }
+            }
+
+        }
+        if(r + 2 <= 7){
+            if(f+1 <= 7 && (board[f+1][r+2] == null || (board[f+1][r+2].pieceType.ordinal() <=5 && player == Player.black)
+                    || (board[f+1][r+2].pieceType.ordinal() > 5 && player == Player.white))) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f+1]+ (r+3), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f+1] + (r+3))) {
+                    return true;
+                }
+            }
+            if(f-1 >= 0 && (board[f-1][r+2] == null || (board[f-1][r+2].pieceType.ordinal() <=5 && player == Player.black)
+                    || (board[f-1][r+2].pieceType.ordinal() > 5 && player == Player.white))) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f-1]+ (r+3), mate))
+                        return false;
+                }
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f-1] + (r+3))) {
+                    return true;
+                }
+            }
+
+        }
+
         return false;
     }
+
 }
 
 class Pawn extends Piece{
 
+    public boolean hasMoved = false;
+    public boolean enPassant = false;
+
     public Pawn(Chess.Player color, int typeIteration){
+        super(color);
         switch (color) {
             case white:
                 this.pieceType = PieceType.WP;
@@ -335,11 +724,170 @@ class Pawn extends Piece{
         }
     }
 
-    public boolean isValidMove(String move){
-        return true;
+    public boolean move(String move){
+        
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        if(!(stack[2].toString().contains("isSelfCheck"))) hasMoved = true;
+
+        return super.move(move);
     }
 
-    public boolean move(String move){
+    public boolean isValidMove(ArrayList<ReturnPiece> pieces, String move, Chess.Player player, boolean mate){
+        ReturnPiece[][] board = fillBoard(pieces);
+
+        int r = pieceRank-1;
+        int f = pieceFile.ordinal();
+
+        //For white pawns
+        if(player == Chess.Player.white){
+            if(r+1 <7 && board[f][r+1] == null){
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + pieceFile + (r + 2))) {
+                    return true;
+                }
+                if((f-1 >= 0) && board[f-1][r+1] != null && board[f-1][r+1].pieceType.ordinal() >5){
+                    if(mate){
+                        if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                            return false;
+                    }
+                    else if( move.equals("" + ReturnPiece.PieceFile.values()[f-1] + (r+2))) {
+                        return true;
+                    }
+                }if((f+1 <= 7) &&board[f+1][r+1] != null && board[f+1][r+1].pieceType.ordinal() >5){
+                    if(mate){
+                        if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                            return false;
+                    }
+                    else if(move.equals("" + ReturnPiece.PieceFile.values()[f+1] + (r+2))) {
+                        return true;
+                    }
+                }if(!hasMoved && r+2 < 7 && board[pieceFile.ordinal()][r+2] == null) {
+                    if(mate){
+                        if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                            return false;
+                    }
+                    if(move.equals("" + pieceFile + (r+3))) {
+                        return true;
+                    }
+                }
+            }
+
+            PieceFile[] pieceFiles = PieceFile.values();
+
+            // en passant logic
+            if (r == 4 && (Chess.lastMove.substring(3, 5).equals("" + pieceFiles[f-1] + 5) && Chess.lastMove.substring(0, 2).equals("" + pieceFiles[f-1] + 7))
+            && board[f-1][4].pieceType.equals(PieceType.BP)) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                        return false;
+                } 
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f-1] + (r+2))) {
+                    this.enPassant = true;
+                    return true;
+                }
+            } 
+            else if (r == 4 && (Chess.lastMove.substring(3, 5).equals("" + pieceFiles[f+1] + 5) && Chess.lastMove.substring(0, 2).equals("" + pieceFiles[f+1] + 7)) 
+            && board[f+1][4].pieceType.equals(PieceType.BP)) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                        return false;
+                } 
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f+1] + (r+2))) {
+                    this.enPassant = true;
+                    return true;
+                }
+            }
+
+        } 
+        //For black pawns
+        else{
+            if(r-1 > 0 && board[pieceFile.ordinal()][r-1] == null){
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                        return false;
+                }
+                else if(move.equals("" + pieceFile + (r))) {
+                    return true;
+                }
+                if((f-1 >= 0) && board[f-1][r-1] != null && board[f-1][r-1].pieceType.ordinal() <=5){
+                    if(mate){
+                        if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                            return false;
+                    }
+                    else if(move.equals("" + ReturnPiece.PieceFile.values()[f-1] + (r))) {
+                        return true;
+                    }
+                }if((f+1 <= 7) && board[f+1][r-1] != null && board[f+1][r-1].pieceType.ordinal() <=5){
+                    if(mate){
+                        if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                            return false;
+                    }
+                    else if(move.equals("" + ReturnPiece.PieceFile.values()[f+1] + (r))) {
+                        return true;
+                    }
+                }if(!hasMoved && r-2 > 0 && board[pieceFile.ordinal()][r-2] == null) {
+                    if(mate){
+                        if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                            return false;
+                    }
+                    else if(move.equals("" + pieceFile + (r-1))) {
+                        return true;
+                    }
+                }
+            } 
+
+            PieceFile[] pieceFiles = PieceFile.values();
+
+            // en passant logic
+            if (r == 3 && (Chess.lastMove.substring(3, 5).equals("" + pieceFiles[f-1] + 4) && Chess.lastMove.substring(0, 2).equals("" + pieceFiles[f-1] + 2)) 
+            && board[f-1][3].pieceType.equals(PieceType.WP)) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                        return false;
+                } 
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f-1] + (r))) {
+                    this.enPassant = true;
+                    return true;
+                }
+            } 
+            else if (r == 3 && (Chess.lastMove.substring(3, 5).equals("" + pieceFiles[f+1] + 4) && Chess.lastMove.substring(0, 2).equals("" + pieceFiles[f+1] + 2)) 
+            && board[f+1][3].pieceType.equals(PieceType.WP)) {
+                if(mate){
+                    if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f]+ (r+1), mate))
+                        return false;
+                } 
+                else if(move.equals("" + ReturnPiece.PieceFile.values()[f+1] + (r))) {
+                    this.enPassant = true;
+                    return true;
+                }
+            }
+        }
+
         return false;
+    }
+
+    public ReturnPiece promote(ArrayList<ReturnPiece> pieces, String promoteTo){
+        ReturnPiece newPiece;
+        switch (promoteTo) {
+            case "R":
+                newPiece = new Rook(Chess.player, 0);
+                break;
+            case "B":
+                newPiece = new Bishop(Chess.player, 0);
+                break;
+            case "N":
+                newPiece = new Knight(Chess.player, 0);
+                break;
+            default:
+                newPiece = new Queen(Chess.player);
+                break;
+        }
+
+        newPiece.pieceFile = this.pieceFile;
+        newPiece.pieceRank = this.pieceRank;
+        return newPiece;
     }
 }
