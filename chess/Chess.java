@@ -43,8 +43,7 @@ public class Chess {
 	enum Player { white, black }
 	static Player player;
  	static ArrayList<ReturnPiece> pieces;
-	static boolean whiteMoves[][] = new boolean[8][8]; 
-	static boolean blackMoves[][] = new boolean[8][8];
+	static Pawn wasEnPassantPiece = null;
 	
 	/**
 	 * Plays the next move for whichever player has the turn.
@@ -83,17 +82,35 @@ public class Chess {
 			}
 		}
 
-		// Check to see if piece is on the board
-		if(curPiece == null){
+
+		// Check for targeted piece being null
+		// Capturing en passant requires an empty square to be targeted, so check to see whether 
+		//		en passant is valid for this piece
+		// If en passant is not valid for this move, return with error
+		if(wasEnPassantPiece != null && wasEnPassantPiece.wasEnPassantBool && curPiece == null){
+			if(!(curPiece instanceof Pawn && curPiece.pieceRank == wasEnPassantPiece.pieceRank && (Math.abs(curPiece.pieceFile.ordinal() + 
+					wasEnPassantPiece.pieceFile.ordinal()) == 1) && "" + subMove[1].charAt(0) != "" + wasEnPassantPiece.pieceFile)){
+				ret.message = ReturnPlay.Message.ILLEGAL_MOVE;
+				ret.piecesOnBoard = pieces;
+				System.out.println("Error: Empty square was attempted to move");
+				return ret;
+			}
+		}else if(curPiece == null && wasEnPassantPiece != null && wasEnPassantPiece.wasEnPassantBool == false){
 			ret.message = ReturnPlay.Message.ILLEGAL_MOVE;
 			ret.piecesOnBoard = pieces;
 			System.out.println("Error: Empty square was attempted to move");
 			return ret;
-		}
-		
-		// Check if there is a capture then move piece to new square
+		} 
+
+		// Checks whether the move is valid, then whether it results in own piece being put in check
+		// Check whether the move made the piece elligible to be taken en passant, and store it in
+		// 		the wasEnPassantPiece object. If this piece didn't become en passant elligible, We must 
+		//		later change the wasEnPassantPiece object to reflect that
+		int pawnRank =0;
+		boolean switchEnPassant = false;
+		if(curPiece instanceof Pawn) pawnRank = curPiece.pieceRank; 
 		if(curPiece.isValidMove(pieces, subMove[1], player, false)){
-			if(curPiece.isSelfCheck(pieces, player, subMove[1], false)){
+			if(curPiece.isSelfCheck(pieces, player, subMove[1])){
 				ret.message = Message.ILLEGAL_MOVE;
 				ret.piecesOnBoard = pieces;
 				return ret;
@@ -101,20 +118,23 @@ public class Chess {
 			if(curPiece instanceof Pawn){
 				Pawn temp = (Pawn) curPiece;
 				temp.hasMoved = true;
-				if(temp.pieceRank == 8) {
+				if(Math.abs(pawnRank - temp.pieceRank) == 2) {
+					temp.wasEnPassantBool = true;
+					wasEnPassantPiece = temp;
+				}else switchEnPassant = true;
+				if(temp.pieceRank == 8 || temp.pieceRank == 1) {
 					pieces.remove(temp);
-					if(subMove.length == 3) pieces.add(temp.promote(pieces, subMove[2]));
-					else pieces.add(temp.promote(pieces, ""));
+					if(subMove.length == 3) pieces.add(temp.promote(subMove[2]));
+					else pieces.add(temp.promote(""));
 				}
-			}
+			}else switchEnPassant = true;
 		}else{
 			ret.message = Message.ILLEGAL_MOVE;
 			ret.piecesOnBoard = pieces;
 			return ret;
 		}
 		
-		System.out.println("TEST:");
-		PlayChess.printBoard(pieces);
+		// Check for check, then checkmate
 		if(Piece.isCheck(pieces, player)){
 			if(Piece.isMate(pieces, player)){
 				if(player == Player.white) ret.message = Message.CHECKMATE_WHITE_WINS;
@@ -130,9 +150,10 @@ public class Chess {
 		}
 		
 
-		// If there is an additional message in the move (draw or promotion)
+		// If there is an additional message in the move (draw or promotion), then change the wasEnPassantPiece if
+		// 		last move was not en passant, then change the player
 		if(subMove.length == 3 && subMove[2].equals("draw?")) ret.message = ReturnPlay.Message.DRAW;
-		
+		if(switchEnPassant && wasEnPassantPiece != null) wasEnPassantPiece.wasEnPassantBool = false;
 		if(player == Player.white) player = Player.black;
 		else player = Player.white;
 		ret.piecesOnBoard = pieces;
