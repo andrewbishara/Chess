@@ -397,6 +397,8 @@ public abstract class Piece extends ReturnPiece{
 
 class King extends Piece{
 
+    public boolean hasMoved = false;
+
     public King(Chess.Player color){
         super(color);
         pieceFile = PieceFile.e;
@@ -474,6 +476,124 @@ class King extends Piece{
                 }
             }
         }
+        
+
+
+        // White King side castle
+        if (player == Player.white && !hasMoved && !isCheck(pieces, Player.black) && board[f+1][0] == null 
+        && board[f+2][0] == null && board[f+3][0].pieceType == PieceType.WR && !((Rook)board[f+3][0]).hasMoved) {
+            if(mate){
+                if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f+2]+ (r), mate))
+                    return false;
+            } else if (move.equals("" + ReturnPiece.PieceFile.values()[f+2] + (r))){
+
+                ArrayList<ReturnPiece> opposingPieces = new ArrayList<ReturnPiece>();
+
+                for(ReturnPiece it : Chess.pieces){
+                    if(it.pieceType.ordinal()>5) opposingPieces.add(it);
+                }
+
+                for(ReturnPiece it : opposingPieces){
+                    if(((Piece)it).isValidMove(pieces, "" + PieceFile.f + 1, Player.black, false)){
+                        return false;
+                    }
+                    if(((Piece)it).isValidMove(pieces, "" + PieceFile.g + 1, Player.black, false)){
+                        return false;
+                    }
+                }
+
+                return true;
+
+            }
+
+        }
+
+        // White Queen side castle
+        if (player == Player.white && !hasMoved && !isCheck(pieces, Player.black) && board[f-1][0] == null && board[f-2][0] == null 
+        && board[f-3][0] == null && board[f-4][0].pieceType == PieceType.WR && !((Rook)board[f-4][0]).hasMoved) {
+            if(mate){
+                if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f-2]+ (r), mate))
+                    return false;
+            } else if (move.equals("" + ReturnPiece.PieceFile.values()[f-2] + (r))){
+
+                ArrayList<ReturnPiece> opposingPieces = new ArrayList<ReturnPiece>();
+
+                for(ReturnPiece it : Chess.pieces){
+                    if(it.pieceType.ordinal()>5) opposingPieces.add(it);
+                }
+
+                for(ReturnPiece it : opposingPieces){
+                    if(((Piece)it).isValidMove(pieces, "" + PieceFile.c + 1, Player.black, false)){
+                        return false;
+                    }
+                    if(((Piece)it).isValidMove(pieces, "" + PieceFile.d + 1, Player.black, false)){
+                        return false;
+                    }
+                }
+
+                return true;
+
+            }
+
+        }
+
+        // Black King side castle
+        if (player == Player.black && !hasMoved && !isCheck(pieces, Player.white) && board[f+1][7] == null 
+        && board[f+2][7] == null && board[f+3][7].pieceType == PieceType.BR && !((Rook)board[f+3][7]).hasMoved) {
+            if(mate){
+                if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f+2]+ (r), mate))
+                    return false;
+            } else if (move.equals("" + ReturnPiece.PieceFile.values()[f+2] + (r))){
+
+                ArrayList<ReturnPiece> opposingPieces = new ArrayList<ReturnPiece>();
+
+                for(ReturnPiece it : Chess.pieces){
+                    if(it.pieceType.ordinal()<=5) opposingPieces.add(it);
+                }
+
+                for(ReturnPiece it : opposingPieces){
+                    if(((Piece)it).isValidMove(pieces, "" + PieceFile.f + 8, Player.white, false)){
+                        return false;
+                    }
+                    if(((Piece)it).isValidMove(pieces, "" + PieceFile.g + 8, Player.white, false)){
+                        return false;
+                    }
+                }
+
+                return true;
+
+            }
+
+        }
+
+        // Black Queen side castle
+        if (player == Player.black && !hasMoved && !isCheck(pieces, Player.white) && board[f-1][7] == null && board[f-2][7] == null 
+        && board[f-3][7] == null && board[f-4][7].pieceType == PieceType.BR && !((Rook)board[f-4][7]).hasMoved) {
+            if(mate){
+                if(isSelfCheck(pieces, player, "" + ReturnPiece.PieceFile.values()[f-2]+ (r), mate))
+                    return false;
+            } else if (move.equals("" + ReturnPiece.PieceFile.values()[f-2] + (r))){
+
+                ArrayList<ReturnPiece> opposingPieces = new ArrayList<ReturnPiece>();
+
+                for(ReturnPiece it : Chess.pieces){
+                    if(it.pieceType.ordinal()<=5) opposingPieces.add(it);
+                }
+
+                for(ReturnPiece it : opposingPieces){
+                    if(((Piece)it).isValidMove(pieces, "" + PieceFile.c + 8, Player.white, false)){
+                        return false;
+                    }
+                    if(((Piece)it).isValidMove(pieces, "" + PieceFile.d + 8, Player.white, false)){
+                        return false;
+                    }
+                }
+
+                return true;
+
+            }
+
+        }
 
         return false;
     }
@@ -505,6 +625,8 @@ class Queen extends Piece{
 }
 
 class Rook extends Piece{
+
+    public boolean hasMoved = false;
 
     public Rook(Chess.Player color, int typeIteration){
         super(color);
