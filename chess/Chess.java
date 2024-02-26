@@ -87,7 +87,8 @@ public class Chess {
 		// Capturing en passant requires an empty square to be targeted, so check to see whether 
 		//		en passant is valid for this piece
 		// If en passant is not valid for this move, return with error
-		if(wasEnPassantPiece != null && wasEnPassantPiece.wasEnPassantBool && curPiece == null){
+		
+		if(curPiece == null && wasEnPassantPiece != null && wasEnPassantPiece.wasEnPassantBool ){
 			if(!(curPiece instanceof Pawn && curPiece.pieceRank == wasEnPassantPiece.pieceRank && (Math.abs(curPiece.pieceFile.ordinal() + 
 					wasEnPassantPiece.pieceFile.ordinal()) == 1) && "" + subMove[1].charAt(0) != "" + wasEnPassantPiece.pieceFile)){
 				ret.message = ReturnPlay.Message.ILLEGAL_MOVE;
@@ -95,7 +96,7 @@ public class Chess {
 				System.out.println("Error: Empty square was attempted to move");
 				return ret;
 			}
-		}else if(curPiece == null && wasEnPassantPiece != null && wasEnPassantPiece.wasEnPassantBool == false){
+		}else if(curPiece == null){
 			ret.message = ReturnPlay.Message.ILLEGAL_MOVE;
 			ret.piecesOnBoard = pieces;
 			System.out.println("Error: Empty square was attempted to move");
@@ -107,6 +108,7 @@ public class Chess {
 		// 		the wasEnPassantPiece object. If this piece didn't become en passant elligible, We must 
 		//		later change the wasEnPassantPiece object to reflect that
 		int pawnRank =0;
+		Pawn temp = null;
 		boolean switchEnPassant = false;
 		if(curPiece instanceof Pawn) pawnRank = curPiece.pieceRank; 
 		if(curPiece.isValidMove(pieces, subMove[1], player, false)){
@@ -116,8 +118,13 @@ public class Chess {
 				return ret;
 			} 
 			if(curPiece instanceof Pawn){
-				Pawn temp = (Pawn) curPiece;
-				temp.hasMoved = true;
+				for(ReturnPiece it : pieces){
+					if(it instanceof Pawn){
+						if(("" + it.pieceFile + it.pieceRank).equals(subMove[1])){
+							temp = (Pawn)it;
+						}
+					}
+				}
 				if(Math.abs(pawnRank - temp.pieceRank) == 2) {
 					temp.wasEnPassantBool = true;
 					wasEnPassantPiece = temp;
@@ -141,7 +148,7 @@ public class Chess {
 				else ret.message = Message.CHECKMATE_BLACK_WINS;
 				ret.piecesOnBoard = pieces;
 				return ret;
-			}
+			} 
 			if(player == Player.white) player = Player.black;
 			else player = Player.white;
 			ret.message = Message.CHECK;
@@ -175,11 +182,11 @@ public class Chess {
 			pieces.add(new King(player));
 			pieces.add(new Queen(player));
 
-			/* for(int i = 0; i < 2; i++){
+			for(int i = 0; i < 2; i++){
 				pieces.add(new Rook(player, i));
 				pieces.add(new Bishop(player, i));
 				pieces.add(new Knight(player, i));
-			} */
+			} 
 
 		 	for(int i = 0; i < 8; i++){
 				pieces.add(new Pawn(player, i));
