@@ -643,6 +643,7 @@ class King extends Piece{
         // fill validMoves with king moves one rank above and below, including diagonal
         if(r+1 <= 7){
             for(int i = f -1; i<=f+1; i++){
+                if(i>= 0 && i <=7){
                 if(board[i][r+1] == null || (board[i][r+1].pieceType.ordinal() >5 && player == Player.white) 
                         || (board[i][r+1].pieceType.ordinal() <= 5 && player == Player.black)){
                     if(mate){
@@ -659,10 +660,12 @@ class King extends Piece{
                         return true;
                     }
                 }
+                }
             }
         }
         if(r-1 >= 0){
             for(int i = f -1; i<=f+1; i++){
+                if(i>= 0 && i <=7){
                 if(board[i][r-1] == null || (board[i][r-1].pieceType.ordinal() >5 && player == Player.white) 
                         || (board[i][r-1].pieceType.ordinal() <= 5 && player == Player.black)){
                     if(mate){
@@ -678,6 +681,7 @@ class King extends Piece{
                     else if(move.equals("" + ReturnPiece.PieceFile.values()[i] + (r))){
                         return true;
                     }
+                }
                 }
             }
         }
