@@ -1,3 +1,5 @@
+// Zachary Taylor & Andrew Bishara
+
 package chess;
 
 import java.util.ArrayList;
