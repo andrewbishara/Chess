@@ -722,7 +722,7 @@ class King extends Piece{
 
         // White King side castle
         if (player == Player.white && !hasMoved && f+3 < board.length && board[f+1][0] == null && board[f+2][0] == null 
-        && board[f+3][0].pieceType == PieceType.WR && !((Rook)board[f+3][0]).hasMoved) {
+        && board[f+3][0] != null && board[f+3][0].pieceType == PieceType.WR && !((Rook)board[f+3][0]).hasMoved) {
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
@@ -756,7 +756,7 @@ class King extends Piece{
 
         // White Queen side castle
         if (player == Player.white && !hasMoved && f-4 > -1 && board[f-1][0] == null && board[f-2][0] == null 
-        && board[f-3][0] == null && board[f-4][0].pieceType == PieceType.WR && !((Rook)board[f-4][0]).hasMoved) {
+        && board[f-3][0] == null && board[f-4][0] != null && board[f-4][0].pieceType == PieceType.WR && !((Rook)board[f-4][0]).hasMoved) {
             if(mate){
                 if(player == Player.black) player = Player.white;
                     else player = Player.black;
@@ -791,7 +791,7 @@ class King extends Piece{
 
         // Black King side castle
         if (player == Player.black && !hasMoved && f+3 < board.length && board[f+1][7] == null 
-        && board[f+2][7] == null && board[f+3][7].pieceType == PieceType.BR && !((Rook)board[f+3][7]).hasMoved) {
+        && board[f+2][7] == null && board[f+3][7] != null && board[f+3][7].pieceType == PieceType.BR && !((Rook)board[f+3][7]).hasMoved) {
             if(mate){
                 if(player == Player.black) player = Player.white;
                     else player = Player.black;
@@ -825,7 +825,7 @@ class King extends Piece{
 
         // Black Queen side castle
         if (player == Player.black && !hasMoved && f-4 > -1 && board[f-1][7] == null && board[f-2][7] == null 
-        && board[f-3][7] == null && board[f-4][7].pieceType == PieceType.BR && !((Rook)board[f-4][7]).hasMoved) {
+        && board[f-3][7] == null && board[f-4][7] != null && board[f-4][7].pieceType == PieceType.BR && !((Rook)board[f-4][7]).hasMoved) {
             if(mate){
                 if(player == Player.black) player = Player.white;
                     else player = Player.black;
