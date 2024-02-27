@@ -66,20 +66,24 @@ public abstract class Piece extends ReturnPiece{
     
     public abstract boolean isValidMove(ArrayList<ReturnPiece> pieces, String move, Chess.Player player, boolean mate);
 
-    public ArrayList<ReturnPiece> moveAndRemove(ArrayList<ReturnPiece> pieces, String move){
+    public ArrayList<ReturnPiece> moveAndRemove(ArrayList<ReturnPiece> pieces, String move, boolean castle){
         ArrayList<ReturnPiece> piecesCopy = deepCopyArrayList(pieces);
         ReturnPiece rem = null;
+        Rook castler = null;
 
         for(ReturnPiece it : piecesCopy){
             if(move.equals("" + it.pieceFile + it.pieceRank)){
-                rem = it;
+                if(castle){
+                    castler = (Rook)it;
+                }else rem = it;
             }
             if(this.pieceFile == it.pieceFile && it.pieceRank == this.pieceRank){
                 ((Piece)it).move(move, it);
             }
-            
         }
         
+        if(castler !=null && ("" + move.charAt(0)).equals("" + PieceFile.g)) castler.pieceFile = PieceFile.f;
+        if(castler !=null && ("" + move.charAt(0)).equals("" + PieceFile.a)) castler.pieceFile = PieceFile.d;
         if(rem != null) piecesCopy.remove(rem);
         return piecesCopy;
     }
@@ -166,6 +170,9 @@ public abstract class Piece extends ReturnPiece{
         int storeRank = pieceRank;
         PieceFile storeFile = pieceFile;
         ReturnPiece rem = null;
+        Rook castler = null;
+        int storeCastleRank = 0;
+        PieceFile storeCastleFile = null;
 
         // This fills the opponent pieces Array with all opponent pieces and stores the king of the moving color
         // Removes targeted piece if move results in capture
@@ -181,8 +188,34 @@ public abstract class Piece extends ReturnPiece{
                     if(move.equals("" + it.pieceFile + it.pieceRank)) {
                         rem = it;
                     } else opponentPieces.add(it);
+
                         
-                } else if(it.pieceType == PieceType.WK) king = it;
+                } else if(it.pieceType == PieceType.WK) {
+                    if(("" + move.charAt(0)).equals("" + PieceFile.g) && this instanceof King && ((King)this).hasMoved == false){
+                        
+                        for(ReturnPiece itTwo : piecesCopy){
+                            if(itTwo.pieceFile == PieceFile.h && itTwo.pieceRank == 1 && itTwo instanceof Rook && ((Rook)itTwo).hasMoved == false){
+                                castler = (Rook)itTwo;
+                                storeCastleFile = castler.pieceFile;
+                                storeCastleRank = castler.pieceRank;
+                                castler.pieceFile = PieceFile.f;
+                            }
+                        }
+                        
+                    }else if(("" + move.charAt(0)).equals("" + PieceFile.c) && this instanceof King &&((King)this).hasMoved == false){
+                        castler = null;
+                        for(ReturnPiece itTwo : piecesCopy){
+                            if(itTwo.pieceFile == PieceFile.a && itTwo.pieceRank == 1 && itTwo instanceof Rook && ((Rook)itTwo).hasMoved == false){
+                                castler = (Rook)itTwo;
+                                storeCastleFile = castler.pieceFile;
+                                storeCastleRank = castler.pieceRank;
+                                castler.pieceFile = PieceFile.d;
+                            }
+                        }
+                        
+                    }
+                    king = it;
+                }
                 if(this.pieceFile == it.pieceFile && this.pieceRank == it.pieceRank) ((Piece)it).move(move, it);
             }
 
@@ -201,7 +234,33 @@ public abstract class Piece extends ReturnPiece{
                     } else opponentPieces.add(it);
 
                     
-                } else if(it.pieceType == PieceType.BK) king = it;
+                } else if(it.pieceType == PieceType.BK) {
+                    if(("" + move.charAt(0)).equals("" + PieceFile.g) && this instanceof King && ((King)this).hasMoved == false){
+                        
+                        for(ReturnPiece itTwo : piecesCopy){
+                            if(itTwo.pieceFile == PieceFile.h && itTwo.pieceRank == 8 && itTwo instanceof Rook && ((Rook)itTwo).hasMoved == false){
+                                castler = (Rook)itTwo;
+                                storeCastleFile = castler.pieceFile;
+                                storeCastleRank = castler.pieceRank;
+                                castler.pieceFile = PieceFile.f;
+                            }
+                        }
+                        
+                    }else if(("" + move.charAt(0)).equals("" + PieceFile.c) && this instanceof King && ((King)this).hasMoved == false){
+                        castler = null;
+                        for(ReturnPiece itTwo : piecesCopy){
+                            if(itTwo.pieceFile == PieceFile.a && itTwo.pieceRank == 8 && itTwo instanceof Rook && ((Rook)itTwo).hasMoved == false){
+                                castler = (Rook)itTwo;
+                                storeCastleFile = castler.pieceFile;
+                                storeCastleRank = castler.pieceRank;
+                                castler.pieceFile = PieceFile.d;
+                            }
+                        }
+                        
+                    }
+                    king = it;
+                }
+                
                 if(this.pieceFile == it.pieceFile && this.pieceRank == it.pieceRank) ((Piece)it).move(move, it);
 
             }
@@ -209,6 +268,8 @@ public abstract class Piece extends ReturnPiece{
             if(rem != null) piecesCopy.remove(rem);
         }
         
+        
+
         // Move the piece, then check all opponent pieces to see if they can attack your king
         // If this move results in a check on yourself, reset the board to how it was before this call
         if(player == Player.white){player = Player.black;}
@@ -216,8 +277,16 @@ public abstract class Piece extends ReturnPiece{
         for(ReturnPiece it : opponentPieces){
             curPiece = (Piece)it;
             if(curPiece.isValidMove(piecesCopy, "" + king.pieceFile + king.pieceRank, player, false)){
-                pieceRank = storeRank;
-                pieceFile = storeFile;
+                for(ReturnPiece itTwo : piecesCopy){
+                    if(move.equals("" + itTwo.pieceFile + itTwo.pieceRank)) curPiece = (Piece)itTwo;
+                    
+                }
+                curPiece.pieceRank = storeRank;
+                curPiece.pieceFile = storeFile;
+                if(castler != null){
+                    castler.pieceFile = storeCastleFile;
+                    castler.pieceRank = storeCastleRank;
+                }
                 if(rem != null) piecesCopy.add(rem);
                 Chess.pieces = piecesCopy;
                 return true;
@@ -283,7 +352,7 @@ public abstract class Piece extends ReturnPiece{
             if(mate){
                 if(player == Player.black) player = Player.white;
                 else player = Player.black;
-                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + "" + pieceFile + (i+1));
+                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + "" + pieceFile + (i+1), false);
                 if(!isCheck(giveReturnPieces, player))
                     retTrue = true;
 
@@ -303,7 +372,7 @@ public abstract class Piece extends ReturnPiece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + "" + pieceFile + (i+1));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + "" + pieceFile + (i+1), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
 
@@ -323,7 +392,7 @@ public abstract class Piece extends ReturnPiece{
             if(mate){
                 if(player == Player.black) player = Player.white;
                 else player = Player.black;
-                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + "" + pieceFile + (i+1));
+                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + "" + pieceFile + (i+1), false);
                 if(!isCheck(giveReturnPieces, player))
                     retTrue = true;
                 if(player == Player.black) player = Player.white;
@@ -342,7 +411,7 @@ public abstract class Piece extends ReturnPiece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + "" + pieceFile + (i+1));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + "" + pieceFile + (i+1), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -361,7 +430,7 @@ public abstract class Piece extends ReturnPiece{
             if(mate){
                 if(player == Player.black) player = Player.white;
                 else player = Player.black;
-                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + pieceRank);
+                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + pieceRank, false);
                 if(!isCheck(giveReturnPieces, player))
                     retTrue = true;
                 if(player == Player.black) player = Player.white;
@@ -380,7 +449,7 @@ public abstract class Piece extends ReturnPiece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + pieceRank);
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + pieceRank, false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -399,7 +468,7 @@ public abstract class Piece extends ReturnPiece{
             if(mate){
                 if(player == Player.black) player = Player.white;
                 else player = Player.black;
-                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + pieceRank);
+                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + pieceRank, false);
                 if(!isCheck(giveReturnPieces, player))
                     retTrue = true;
                 if(player == Player.black) player = Player.white;
@@ -417,7 +486,7 @@ public abstract class Piece extends ReturnPiece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + pieceRank);
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + pieceRank, false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -445,7 +514,7 @@ public abstract class Piece extends ReturnPiece{
             if(mate ){
                 if(player == Player.black) player = Player.white;
                 else player = Player.black;
-                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1));
+                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1), false);
                 if(!isCheck(giveReturnPieces, player))
                     retTrue = true;
                 if(player == Player.black) player = Player.white;
@@ -465,7 +534,7 @@ public abstract class Piece extends ReturnPiece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -486,7 +555,7 @@ public abstract class Piece extends ReturnPiece{
             if(mate ){
                 if(player == Player.black) player = Player.white;
                 else player = Player.black;
-                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1));
+                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1), false);
                 if(!isCheck(giveReturnPieces, player))
                     retTrue = true;
                 if(player == Player.black) player = Player.white;
@@ -506,7 +575,7 @@ public abstract class Piece extends ReturnPiece{
                 if(mate ){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     
@@ -527,7 +596,7 @@ public abstract class Piece extends ReturnPiece{
             if(mate){
                 if(player == Player.black) player = Player.white;
                 else player = Player.black;
-                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1));
+                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1), false);
                 if(!isCheck(giveReturnPieces, player))
                     retTrue = true;
                 if(player == Player.black) player = Player.white;
@@ -546,7 +615,7 @@ public abstract class Piece extends ReturnPiece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -566,7 +635,7 @@ public abstract class Piece extends ReturnPiece{
             if(mate){
                 if(player == Player.black) player = Player.white;
                 else player = Player.black;
-                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1));
+                ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1), false);
                 if(!isCheck(giveReturnPieces, player))
                     retTrue = true;
                 if(player == Player.black) player = Player.white;
@@ -585,7 +654,7 @@ public abstract class Piece extends ReturnPiece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f]) + (r+1), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -605,6 +674,8 @@ public abstract class Piece extends ReturnPiece{
 }
 
 class King extends Piece{
+
+    public boolean hasMoved;
 
     public King(Chess.Player color){
         super(color);
@@ -631,41 +702,45 @@ class King extends Piece{
 
         // fill validMoves with king moves one rank above and below, including diagonal
         if(r+1 <= 7){
-            for(int i = f -1; i<=f+1; i++){
-                if(board[i][r+1] == null || (board[i][r+1].pieceType.ordinal() >5 && player == Player.white) 
-                        || (board[i][r+1].pieceType.ordinal() <= 5 && player == Player.black)){
-                    if(mate){
-                        if(player == Player.black) player = Player.white;
-                        else player = Player.black;
-                        ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + (r+2));
-                        if(!isCheck(giveReturnPieces, player))
-                            retTrue = true;
-                        if(player == Player.black) player = Player.white;
-                        else player = Player.black;
-                        
-                    }
-                    else if(move.equals("" + ReturnPiece.PieceFile.values()[i] + (r+2))){
-                        return true;
+            for(int i = (f -1); i<=f+1; i++){
+                if(i>= 0 && i <=7){
+                    if(board[i][r+1] == null || (board[i][r+1].pieceType.ordinal() >5 && player == Player.white) 
+                            || (board[i][r+1].pieceType.ordinal() <= 5 && player == Player.black)){
+                        if(mate){
+                            if(player == Player.black) player = Player.white;
+                            else player = Player.black;
+                            ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + (r+2), false);
+                            if(!isCheck(giveReturnPieces, player))
+                                retTrue = true;
+                            if(player == Player.black) player = Player.white;
+                            else player = Player.black;
+                            
+                        }
+                        else if(move.equals("" + ReturnPiece.PieceFile.values()[i] + (r+2))){
+                            return true;
+                        }
                     }
                 }
             }
         }
         if(r-1 >= 0){
             for(int i = f -1; i<=f+1; i++){
-                if(board[i][r-1] == null || (board[i][r-1].pieceType.ordinal() >5 && player == Player.white) 
-                        || (board[i][r-1].pieceType.ordinal() <= 5 && player == Player.black)){
-                    if(mate){
-                        if(player == Player.black) player = Player.white;
-                        else player = Player.black;
-                        ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + (r));
-                        if(!isCheck(giveReturnPieces, player))
-                            retTrue = true;
-                        if(player == Player.black) player = Player.white;
-                        else player = Player.black;
-                        
-                    }
-                    else if(move.equals("" + ReturnPiece.PieceFile.values()[i] + (r))){
-                        return true;
+                if(i>= 0 && i <=7){
+                    if(board[i][r-1] == null || (board[i][r-1].pieceType.ordinal() >5 && player == Player.white) 
+                            || (board[i][r-1].pieceType.ordinal() <= 5 && player == Player.black)){
+                        if(mate){
+                            if(player == Player.black) player = Player.white;
+                            else player = Player.black;
+                            ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[i]) + (r), false);
+                            if(!isCheck(giveReturnPieces, player))
+                                retTrue = true;
+                            if(player == Player.black) player = Player.white;
+                            else player = Player.black;
+                            
+                        }
+                        else if(move.equals("" + ReturnPiece.PieceFile.values()[i] + (r))){
+                            return true;
+                        }
                     }
                 }
             }
@@ -677,7 +752,7 @@ class King extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r+1));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r+1), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -696,7 +771,7 @@ class King extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r+1));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r+1), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -708,10 +783,80 @@ class King extends Piece{
                 }
             }
         }
+        
+        //For White Kingside Castle
+        if(!hasMoved && move.equals("g1")){
+            for(int i = pieceFile.ordinal() + 1; i<=7; i++){
+                if(i < 7 && board[i][0] != null) return false;
+                if(board[7][0] != null && board[7][0] instanceof Rook && ((Rook)board[7][0]).hasMoved == false){
+                    if(mate){
+                        if(player == Player.black) player = Player.white;
+                        else player = Player.black;
+                        ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + PieceFile.h + 1, true);
+                        if(!isCheck(giveReturnPieces, player))
+                            retTrue = true;
+                        if(player == Player.black) player = Player.white;
+                        else player = Player.black;
+                    }else return true;
+                }
+            }
+        //For White Queenside Castle
+        }else if(!hasMoved && move.equals("c1")){
+            for(int i = pieceFile.ordinal() - 1; i>=0; i++){
+                if(i > 0 && board[i][0] != null) return false;
+                if(board[0][0] != null && board[0][0] instanceof Rook && ((Rook)board[0][0]).hasMoved == false){
+                    if(mate){
+                        if(player == Player.black) player = Player.white;
+                        else player = Player.black;
+                        ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + PieceFile.a + 1, true);
+                        if(!isCheck(giveReturnPieces, player))
+                            retTrue = true;
+                        if(player == Player.black) player = Player.white;
+                        else player = Player.black;
+                    }else return true;
+                }
+            }
+        }
+
+        //For Black Kingside Castle
+        if(!hasMoved && move.equals("g8")){
+            for(int i = pieceFile.ordinal() + 1; i<=7; i++){
+                if(i < 7 && board[i][7] != null) return false;
+                if(board[7][7] != null && board[7][7] instanceof Rook && ((Rook)board[7][7]).hasMoved == false){
+                    if(mate){
+                        if(player == Player.black) player = Player.white;
+                        else player = Player.black;
+                        ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + PieceFile.h + 8, true);
+                        if(!isCheck(giveReturnPieces, player))
+                            retTrue = true;
+                        if(player == Player.black) player = Player.white;
+                        else player = Player.black;
+                    }else return true;
+                }
+            }
+        //For Black Queenside Castle
+        }else if(!hasMoved && move.equals("c8")){
+            for(int i = pieceFile.ordinal() - 1; i>=0; i++){
+                if(i > 0 && board[i][7] != null) return false;
+                if(board[0][7] != null && board[0][7] instanceof Rook && ((Rook)board[0][7]).hasMoved == false){
+                    if(mate){
+                        if(player == Player.black) player = Player.white;
+                        else player = Player.black;
+                        ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + PieceFile.h + 8, true);
+                        if(!isCheck(giveReturnPieces, player))
+                            retTrue = true;
+                        if(player == Player.black) player = Player.white;
+                        else player = Player.black;
+                    }else return true;
+                }
+            }
+        }
 
         if(retTrue)return true;
         return false;
     }
+
+    
 }
 
 class Queen extends Piece{
@@ -739,6 +884,7 @@ class Queen extends Piece{
 }
 
 class Rook extends Piece{
+    public boolean hasMoved;
 
     public Rook(Chess.Player color, int typeIteration){
         super(color);
@@ -824,7 +970,7 @@ class Knight extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-2]) + (r+2));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-2]) + (r+2), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -840,7 +986,7 @@ class Knight extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-2]) + (r));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-2]) + (r), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -859,7 +1005,7 @@ class Knight extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+2]) + (r+2));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+2]) + (r+2), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -875,7 +1021,7 @@ class Knight extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+2]) + (r));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+2]) + (r), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -894,7 +1040,7 @@ class Knight extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r-1));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r-1), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -910,7 +1056,7 @@ class Knight extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r-1));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r-1), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -929,7 +1075,7 @@ class Knight extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r+3));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r+3), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -945,7 +1091,7 @@ class Knight extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r+3));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r+3), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -1023,7 +1169,7 @@ class Pawn extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + pieceFile  + (r+2));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + pieceFile  + (r+2), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -1037,7 +1183,7 @@ class Pawn extends Piece{
                     if(mate){
                         if(player == Player.black) player = Player.white;
                         else player = Player.black;
-                        ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + pieceFile  + (r+3));
+                        ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + pieceFile  + (r+3), false);
                         if(!isCheck(giveReturnPieces, player))
                             retTrue = true;
                         if(player == Player.black) player = Player.white;
@@ -1052,7 +1198,7 @@ class Pawn extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r+2));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r+2), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -1066,7 +1212,7 @@ class Pawn extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r+2));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r+2), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -1085,7 +1231,7 @@ class Pawn extends Piece{
                         if(mate){
                             if(player == Player.black) player = Player.white;
                             else player = Player.black;
-                            ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r+2));
+                            ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r+2), false);
                             if(!isCheck(giveReturnPieces, player))
                                 retTrue = true;
                             if(player == Player.black) player = Player.white;
@@ -1104,7 +1250,7 @@ class Pawn extends Piece{
                         if(mate){
                             if(player == Player.black) player = Player.white;
                             else player = Player.black;
-                            ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r+2));
+                            ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r+2), false);
                             if(!isCheck(giveReturnPieces, player))
                                 retTrue = true;
                             if(player == Player.black) player = Player.white;
@@ -1124,7 +1270,7 @@ class Pawn extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + pieceFile  + (r));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + pieceFile  + (r), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -1138,7 +1284,7 @@ class Pawn extends Piece{
                     if(mate){
                         if(player == Player.black) player = Player.white;
                         else player = Player.black;
-                        ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + pieceFile  + (r-1));
+                        ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + pieceFile  + (r-1), false);
                         if(!isCheck(giveReturnPieces, player))
                             retTrue = true;
                         if(player == Player.black) player = Player.white;
@@ -1152,7 +1298,7 @@ class Pawn extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -1166,7 +1312,7 @@ class Pawn extends Piece{
                 if(mate){
                     if(player == Player.black) player = Player.white;
                     else player = Player.black;
-                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r));
+                    ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r), false);
                     if(!isCheck(giveReturnPieces, player))
                         retTrue = true;
                     if(player == Player.black) player = Player.white;
@@ -1185,7 +1331,7 @@ class Pawn extends Piece{
                         if(mate){
                             if(player == Player.black) player = Player.white;
                             else player = Player.black;
-                            ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r));
+                            ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f-1]) + (r), false);
                             if(!isCheck(giveReturnPieces, player))
                                 retTrue = true;
                             if(player == Player.black) player = Player.white;
@@ -1204,7 +1350,7 @@ class Pawn extends Piece{
                         if(mate){
                             if(player == Player.black) player = Player.white;
                             else player = Player.black;
-                            ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r));
+                            ArrayList<ReturnPiece> giveReturnPieces = this.moveAndRemove(pieces, "" + (ReturnPiece.PieceFile.values()[f+1]) + (r), false);
                             if(!isCheck(giveReturnPieces, player))
                                 retTrue = true;
                             if(player == Player.black) player = Player.white;

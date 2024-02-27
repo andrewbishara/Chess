@@ -111,13 +111,19 @@ public class Chess {
 		Pawn temp = null;
 		boolean switchEnPassant = false;
 		if(curPiece instanceof Pawn) pawnRank = curPiece.pieceRank; 
+
 		if(curPiece.isValidMove(pieces, subMove[1], player, false)){
 			if(curPiece.isSelfCheck(pieces, player, subMove[1])){
+				System.out.println("Error: is self check");
 				ret.message = Message.ILLEGAL_MOVE;
 				ret.piecesOnBoard = pieces;
 				return ret;
 			} 
+			for(ReturnPiece it : pieces){
+				if(subMove[1].equals("" + it.pieceFile + it.pieceRank)) curPiece = (Piece)it;
+			}
 			if(curPiece instanceof Pawn){
+				((Pawn)curPiece).hasMoved = true;
 				for(ReturnPiece it : pieces){
 					if(it instanceof Pawn){
 						if(("" + it.pieceFile + it.pieceRank).equals(subMove[1])){
@@ -135,7 +141,40 @@ public class Chess {
 					else pieces.add(temp.promote(""));
 				}
 			}else switchEnPassant = true;
+			if(curPiece instanceof Rook) ((Rook)curPiece).hasMoved = true;
+
+			if(curPiece instanceof King) {
+				Rook castler = null;
+				if(("" + subMove[1].charAt(0)).equals("" + PieceFile.g) && ((King)curPiece).hasMoved == false){
+					
+					for(ReturnPiece it : pieces){
+						if(it.pieceFile == PieceFile.f && it.pieceRank == curPiece.pieceRank && it instanceof Rook && ((Rook)it).hasMoved == false){
+							castler = (Rook)it;
+						}
+					}
+					
+				}else if(("" + subMove[1].charAt(0)).equals("" + PieceFile.c) && ((King)curPiece).hasMoved == false){
+					castler = null;
+					for(ReturnPiece it : pieces){
+						if(it.pieceFile == PieceFile.d && it.pieceRank == curPiece.pieceRank && it instanceof Rook && ((Rook)it).hasMoved == false){
+							castler = (Rook)it;
+						}
+					}
+					
+				}
+
+				if(castler != null && ("" + subMove[1].charAt(0)).equals("" + PieceFile.c)){
+					castler.pieceFile = PieceFile.d;
+					castler.hasMoved = true;
+				}else if(castler != null && ("" + subMove[1].charAt(0)).equals("" +PieceFile.g)){
+					castler.pieceFile = PieceFile.f;
+					castler.hasMoved = true;
+				}
+
+				((King)curPiece).hasMoved = true;
+			}
 		}else{
+			System.out.println("Error: Move not Valid");
 			ret.message = Message.ILLEGAL_MOVE;
 			ret.piecesOnBoard = pieces;
 			return ret;
