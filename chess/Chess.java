@@ -258,11 +258,9 @@ public class Chess {
 
 			 for(int i = 0; i < 2; i++){
 				pieces.add(new Rook(player, i));
-			}
-			/* 
 				pieces.add(new Bishop(player, i));
 				pieces.add(new Knight(player, i));
-			} */
+			} 
 
 		 	for(int i = 0; i < 8; i++){
 				pieces.add(new Pawn(player, i));
