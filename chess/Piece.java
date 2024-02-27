@@ -218,6 +218,11 @@ public abstract class Piece extends ReturnPiece{
         for(ReturnPiece it : opponentPieces){
             curPiece = (Piece)it;
             if(curPiece.isValidMove(piecesCopy, "" + king.pieceFile + king.pieceRank, player, false)){
+                for(ReturnPiece itTwo : piecesCopy){
+                    if(move.equals("" + itTwo.pieceFile + itTwo.pieceRank)) curPiece = (Piece)itTwo;
+                }
+                curPiece.pieceRank = storeRank;
+                curPiece.pieceFile = storeFile;
                 pieceRank = storeRank;
                 pieceFile = storeFile;
                 if(rem != null) piecesCopy.add(rem);
