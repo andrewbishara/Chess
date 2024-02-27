@@ -60,8 +60,8 @@ public class Chess {
 
 		//Checks for resign first
 		if(move.equals("resign")){
-			if(player == Player.black) ret.message = ReturnPlay.Message.RESIGN_BLACK_WINS;
-			else ret.message = ReturnPlay.Message.RESIGN_WHITE_WINS;
+			if(player == Player.black) ret.message = ReturnPlay.Message.RESIGN_WHITE_WINS;
+			else ret.message = ReturnPlay.Message.RESIGN_BLACK_WINS;
 			return ret;
 		}
 
@@ -258,7 +258,7 @@ public class Chess {
 
 			 for(int i = 0; i < 2; i++){
 				pieces.add(new Rook(player, i));
-				pieces.add(new Bishop(player, i));
+			 	pieces.add(new Bishop(player, i));
 				pieces.add(new Knight(player, i));
 			} 
 
